@@ -44,15 +44,22 @@ class AppIcon extends StatelessWidget {
       dimension: size,
       child: ClipRRect(
         borderRadius: radius,
-        child: entry.iconUrl == null
-            ? fallback
-            : Image.network(
-                entry.iconUrl!,
-                fit: BoxFit.cover,
-                semanticLabel: 'Icône de ${entry.name}',
-                loadingBuilder: (_, child, progress) => progress == null ? child : fallback,
-                errorBuilder: (context, error, stack) => fallback,
-              ),
+        // Logo embarqué dans l'APK (hors ligne, indépendant de l'hébergement),
+        // puis image du catalogue, puis pastille.
+        child: Image.asset(
+          'catalog/icons/${entry.id}.png',
+          fit: BoxFit.cover,
+          semanticLabel: 'Icône de ${entry.name}',
+          errorBuilder: (context, error, stack) => entry.iconUrl == null
+              ? fallback
+              : Image.network(
+                  entry.iconUrl!,
+                  fit: BoxFit.cover,
+                  semanticLabel: 'Icône de ${entry.name}',
+                  loadingBuilder: (_, child, progress) => progress == null ? child : fallback,
+                  errorBuilder: (context, error, stack) => fallback,
+                ),
+        ),
       ),
     );
   }

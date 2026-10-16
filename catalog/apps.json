@@ -44,7 +44,6 @@
       "category": "Divertissement",
       "shortDescription": "Lecture en cours de Deezer ou Spotify en plein écran, avec visuels qui réagissent à la musique.",
       "description": "Affiche la pochette, le titre et l'artiste du morceau en cours sur Deezer ou Spotify, avec les contrôles précédent / lecture-pause / suivant, et dix modes visuels dont les couleurs sont extraites de la pochette. Demande l'accès aux notifications pour lire la session multimédia.",
-      "iconUrl": "https://raw.githubusercontent.com/notsogeek87/LieluApp/main/catalog/icons/vizuzik.png",
       "maintenance": "active",
       "featured": true,
       "minSdk": 24,
@@ -61,7 +60,6 @@
       "category": "Productivité",
       "shortDescription": "Inventaire de placard et de cuisine, avec import par scan de ticket de courses.",
       "description": "Gérez le contenu de votre placard : liste des produits, ajout manuel avec détection de doublons, recherche, et import assisté par scan de ticket de courses (CameraX + OCR sur l'appareil). Tout est local, sans backend.",
-      "iconUrl": "https://raw.githubusercontent.com/notsogeek87/LieluApp/main/catalog/icons/yakwa.png",
       "maintenance": "active",
       "minSdk": 26,
       "release": {
@@ -78,7 +76,6 @@
       "category": "Productivité",
       "shortDescription": "Budget : combien pouvez-vous dépenser sans mettre votre mois en danger ?",
       "description": "Application de budget qui répond en cinq secondes à « combien puis-je dépenser sans mettre mon mois en danger ? » : espace Liberté, Futur, Et si… et Moi, calcul fait sur l'appareil, export/import local.",
-      "iconUrl": "https://raw.githubusercontent.com/notsogeek87/LieluApp/main/catalog/icons/messous.png",
       "maintenance": "active",
       "minSdk": 26,
       "release": {
@@ -94,7 +91,6 @@
       "category": "Outils",
       "shortDescription": "Supervision et pilotage de vos workflows n8n depuis votre mobile.",
       "description": "Client Android natif (Kotlin, Jetpack Compose) qui appelle directement l'API de votre instance n8n, sans serveur intermédiaire, pour suivre et piloter vos workflows sans passer par l'interface web complète.",
-      "iconUrl": "https://raw.githubusercontent.com/notsogeek87/LieluApp/main/catalog/icons/monnhuitne.png",
       "maintenance": "active",
       "minSdk": 26,
       "release": {
@@ -110,7 +106,6 @@
       "category": "Outils",
       "shortDescription": "Extrait sur l'appareil des installateurs Inno Setup contenant des archives FreeArc/ARC.",
       "description": "Application Android native (Kotlin/Compose + C++/NDK) pour extraire, sans PC ni Wine, des installateurs Inno Setup dont les données sont des archives FreeArc/ARC. Aucune permission réseau ni stockage : l'accès aux fichiers passe par le sélecteur Android. Projet en cours : voir la documentation du dépôt pour les formats réellement pris en charge.",
-      "iconUrl": "https://raw.githubusercontent.com/notsogeek87/LieluApp/main/catalog/icons/arcextract.png",
       "maintenance": "active",
       "minSdk": 26,
       "release": {
@@ -127,7 +122,6 @@
       "category": "Divertissement",
       "shortDescription": "Tous les sets LEGO Ninjago, et un cœur pour dire à ses parents ce qu'on veut.",
       "description": "Application Android native sans pub, sans tracker ni compte (seule permission : INTERNET). Les données viennent de Brickset, avec Rebrickable en secours.",
-      "iconUrl": "https://raw.githubusercontent.com/notsogeek87/LieluApp/main/catalog/icons/ninjago-wishlist.png",
       "maintenance": "active",
       "minSdk": 26,
       "listed": false,
@@ -145,7 +139,6 @@
       "category": "Productivité",
       "shortDescription": "Client Android pour Karakeep : retrouvez, classez et ajoutez vos liens.",
       "description": "Client Jetpack Compose pour votre serveur Karakeep (il en faut un). Accueil en liste de liens avec recherche (titre, URL, note, site), puces Tous / Favoris / À lire / dossier, glisser pour mettre en favori ou archiver, ajout depuis le menu Partager d'Android, dossiers et sous-dossiers, étiquette « à lire ». L'app appelle directement l'API de Karakeep : pas de copie locale à synchroniser. Dérivé de Karabau (GPL-3.0). Android 12 minimum.",
-      "iconUrl": "https://raw.githubusercontent.com/notsogeek87/LieluApp/main/catalog/icons/lielukeep.png",
       "maintenance": "active",
       "featured": true,
       "minSdk": 31,
@@ -162,7 +155,6 @@
       "category": "Outils",
       "shortDescription": "Évaluez la fiabilité et le respect de la vie privée de vos applications.",
       "description": "Notes de A à E pour comparer les applications numériques sous l'angle de la vie privée et de la souveraineté des données, avec scan des applications installées sur le téléphone. Application Android qui encapsule le site Trusti : elle nécessite une connexion Internet (les données viennent du serveur Trusti, il n'y a pas de mode hors ligne). Sans compte.",
-      "iconUrl": "https://raw.githubusercontent.com/notsogeek87/LieluApp/main/catalog/icons/trusti.png",
       "maintenance": "active",
       "featured": true,
       "release": {
@@ -178,7 +170,6 @@
       "category": "Outils",
       "shortDescription": "Client Android pour Dawarich : votre historique de positions auto-hébergé.",
       "description": "Client mobile pour une instance Dawarich (serveur d'historique de positions auto-hébergé, indispensable) : connexion par adresse et clé d'API ou par QR code, chronologie façon Google Maps, statistiques du profil, gestion des points et enregistrement de nouveaux points depuis le téléphone. Variante FOSS (sans services Google). Dérivé du client communautaire de Sunstep (GPL-3.0). APK volumineux (environ 110 Mo).",
-      "iconUrl": "https://raw.githubusercontent.com/notsogeek87/LieluApp/main/catalog/icons/lielufind.png",
       "maintenance": "active",
       "minSdk": 24,
       "release": {
