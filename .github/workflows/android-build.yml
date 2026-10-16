@@ -1,10 +1,14 @@
 name: Android build
 
+# Pas de build sur chaque branche de travail : seulement main, staging et les PR
+# (un push de branche + PR ou plusieurs branches lançait des builds en double).
 on:
   push:
-    branches: ["**"]
+    branches: [main, staging]
+    paths-ignore: ["**.md", "LICENSE", "docs/**"]
   pull_request:
-    branches: ["**"]
+    branches: [main, staging]
+    paths-ignore: ["**.md", "LICENSE", "docs/**"]
   workflow_dispatch:
 
 permissions:
@@ -19,7 +23,7 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -81,7 +85,7 @@ jobs:
 
       - name: Compiler l'APK (release)
         run: |
-          flutter build apk --release \
+          flutter build apk --release --target-platform android-arm64 \
             --build-name=${{ steps.version.outputs.base }} \
             --build-number=${{ github.run_number }}
 
