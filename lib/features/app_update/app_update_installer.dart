@@ -112,14 +112,14 @@ class _UpdateProgressDialogState extends State<_UpdateProgressDialog> {
     if (_error != null) {
       body = _error!;
     } else if (_needsPermission) {
-      body = 'Allow this app to install updates, then come back and retry.';
+      body = 'Autorisez Lielu Store à installer des applications, puis revenez et réessayez.';
     } else {
-      body = 'Downloading ${widget.update.versionName}… '
+      body = 'Téléchargement de ${widget.update.versionName}… '
           '${(_progress * 100).round()}%';
     }
 
     return AlertDialog(
-      title: const Text('Updating'),
+      title: const Text('Mise à jour du store'),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -134,17 +134,17 @@ class _UpdateProgressDialogState extends State<_UpdateProgressDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Close'),
+          child: const Text('Fermer'),
         ),
         if (_needsPermission)
           FilledButton(
             onPressed: () async {
               await openInstallPermissionSettings();
             },
-            child: const Text('Open settings'),
+            child: const Text('Ouvrir les réglages'),
           ),
         if (_needsPermission || _error != null)
-          FilledButton(onPressed: _run, child: const Text('Retry')),
+          FilledButton(onPressed: _run, child: const Text('Réessayer')),
       ],
     );
   }

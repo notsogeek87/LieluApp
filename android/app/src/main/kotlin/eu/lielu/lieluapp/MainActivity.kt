@@ -8,5 +8,6 @@ class MainActivity : FlutterFragmentActivity() {
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         ApkInstallerChannel.register(flutterEngine, this)
+        StoreChannel.register(flutterEngine, this)
     }
 }

@@ -19,3 +19,6 @@ android/app/debug
 android/app/profile
 android/app/release
 *.jks
+
+# Généré par Flutter
+android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java

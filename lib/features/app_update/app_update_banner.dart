@@ -28,16 +28,16 @@ class _AppUpdateBannerState extends ConsumerState<AppUpdateBanner> {
       final accept = await showDialog<bool>(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: const Text('Update available'),
-          content: Text('Version ${update.versionName} is ready to install.'),
+          title: const Text('Mise à jour de Lielu Store'),
+          content: Text('La version ${update.versionName} est prête à être installée.'),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Later'),
+              child: const Text('Plus tard'),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('Update'),
+              child: const Text('Mettre à jour'),
             ),
           ],
         ),
@@ -74,13 +74,13 @@ class _AppUpdateBannerState extends ConsumerState<AppUpdateBanner> {
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                'Update available: ${update.versionName}',
+                'Mise à jour du store disponible : ${update.versionName}',
                 style: TextStyle(color: scheme.onPrimaryContainer),
               ),
             ),
             TextButton(
               onPressed: () => downloadAndInstallUpdate(context, update),
-              child: const Text('Update'),
+              child: const Text('Mettre à jour'),
             ),
             IconButton(
               icon: const Icon(Icons.close),

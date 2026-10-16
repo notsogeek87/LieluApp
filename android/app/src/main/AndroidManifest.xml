@@ -2,6 +2,15 @@
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES"/>
 
+    <!-- Visibilité des paquets sans QUERY_ALL_PACKAGES : on ne voit que les applications
+         qui ont une icône de lancement. Le catalogue peut donc s'enrichir sans republier le store. -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.MAIN"/>
+            <category android:name="android.intent.category.LAUNCHER"/>
+        </intent>
+    </queries>
+
     <application
         android:label="@string/app_name"
         android:name="${applicationName}"
@@ -17,6 +26,10 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/apk_provider_paths" />
         </provider>
+
+        <receiver
+            android:name=".InstallResultReceiver"
+            android:exported="false"/>
 
         <activity
             android:name=".MainActivity"

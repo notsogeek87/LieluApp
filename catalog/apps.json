@@ -1,0 +1,135 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-10-16T00:00:00Z",
+  "apps": [
+    {
+      "id": "swipernews",
+      "name": "SwiperNews",
+      "packageName": "eu.lielu.news",
+      "repo": "notsogeek87/swipernews",
+      "category": "Actualités",
+      "shortDescription": "Actus RSS et articles Wikipédia dans un seul fil, au swipe vertical.",
+      "description": "Un fil plein écran où l'on swipe d'un article à l'autre : vos flux RSS (sans algorithme, sans compte, import/export OPML) en alternance avec des articles Wikipédia tirés au hasard et filtrables par centres d'intérêt.",
+      "iconUrl": "https://raw.githubusercontent.com/notsogeek87/swipernews/main/logo-192.png",
+      "maintenance": "active",
+      "featured": true,
+      "minSdk": 24,
+      "release": {
+        "tagPattern": "^(?:android-)?v(\\d+(?:\\.\\d+)*)$",
+        "apkPattern": "^swipernews-.*\\.apk$"
+      }
+    },
+    {
+      "id": "backlog",
+      "name": "Backlog",
+      "packageName": "com.davidgcd.backlog",
+      "repo": "notsogeek87/backlog",
+      "category": "Divertissement",
+      "shortDescription": "Gérez votre bibliothèque de jeux vidéo : possédés, à jouer, dates de sortie, notes.",
+      "description": "Suivez ce que vous possédez et ce que vous voulez jouer, avec les dates de sortie (IGDB) et les notes Metacritic/Steam. Application Android native (Kotlin, Jetpack Compose) ; données stockées localement.",
+      "iconUrl": "https://raw.githubusercontent.com/notsogeek87/backlog/main/docs/brand/logo-512.png",
+      "maintenance": "active",
+      "featured": true,
+      "minSdk": 26,
+      "release": {
+        "tagPattern": "^v(\\d+(?:\\.\\d+)*)$",
+        "apkPattern": "^Backlog-.*\\.apk$"
+      }
+    },
+    {
+      "id": "vizuzik",
+      "name": "Vizuzik",
+      "packageName": "com.vizuzik.app",
+      "repo": "notsogeek87/Vizuzik",
+      "category": "Divertissement",
+      "shortDescription": "Lecture en cours de Deezer ou Spotify en plein écran, avec visuels qui réagissent à la musique.",
+      "description": "Affiche la pochette, le titre et l'artiste du morceau en cours sur Deezer ou Spotify, avec les contrôles précédent / lecture-pause / suivant, et dix modes visuels dont les couleurs sont extraites de la pochette. Demande l'accès aux notifications pour lire la session multimédia.",
+      "maintenance": "active",
+      "featured": true,
+      "minSdk": 24,
+      "release": {
+        "tagPattern": "^v(\\d+(?:\\.\\d+)*)$",
+        "apkPattern": "^Vizuzik-.*\\.apk$"
+      }
+    },
+    {
+      "id": "yakwa",
+      "name": "Yakwa",
+      "packageName": "com.rangele.inventory",
+      "repo": "notsogeek87/rangele",
+      "category": "Productivité",
+      "shortDescription": "Inventaire de placard et de cuisine, avec import par scan de ticket de courses.",
+      "description": "Gérez le contenu de votre placard : liste des produits, ajout manuel avec détection de doublons, recherche, et import assisté par scan de ticket de courses (CameraX + OCR sur l'appareil). Tout est local, sans backend.",
+      "maintenance": "active",
+      "minSdk": 26,
+      "release": {
+        "tagPattern": "^v(\\d+(?:\\.\\d+)*)$",
+        "apkPattern": "^Yakwa-.*\\.apk$",
+        "apkExclude": "Staging"
+      }
+    },
+    {
+      "id": "messous",
+      "name": "Messous",
+      "packageName": "com.budgetflow.app",
+      "repo": "notsogeek87/messous",
+      "category": "Productivité",
+      "shortDescription": "Budget : combien pouvez-vous dépenser sans mettre votre mois en danger ?",
+      "description": "Application de budget qui répond en cinq secondes à « combien puis-je dépenser sans mettre mon mois en danger ? » : espace Liberté, Futur, Et si… et Moi, calcul fait sur l'appareil, export/import local.",
+      "maintenance": "active",
+      "minSdk": 26,
+      "release": {
+        "tagPattern": "^v(\\d+(?:\\.\\d+)*)$",
+        "apkPattern": "^Messous-.*\\.apk$"
+      }
+    },
+    {
+      "id": "monnhuitne",
+      "name": "monNhuitNe",
+      "packageName": "com.monnhuitne.app",
+      "repo": "notsogeek87/monNhuitNe",
+      "category": "Outils",
+      "shortDescription": "Supervision et pilotage de vos workflows n8n depuis votre mobile.",
+      "description": "Client Android natif (Kotlin, Jetpack Compose) qui appelle directement l'API de votre instance n8n, sans serveur intermédiaire, pour suivre et piloter vos workflows sans passer par l'interface web complète.",
+      "maintenance": "active",
+      "minSdk": 26,
+      "release": {
+        "tagPattern": "^v(\\d+(?:\\.\\d+)*)$",
+        "apkPattern": "^monNhuitNe-.*\\.apk$"
+      }
+    },
+    {
+      "id": "arcextract",
+      "name": "ArcExtract",
+      "packageName": "eu.lielu.arcextract",
+      "repo": "notsogeek87/extract-repack",
+      "category": "Outils",
+      "shortDescription": "Extrait sur l'appareil des installateurs Inno Setup contenant des archives FreeArc/ARC.",
+      "description": "Application Android native (Kotlin/Compose + C++/NDK) pour extraire, sans PC ni Wine, des installateurs Inno Setup dont les données sont des archives FreeArc/ARC. Aucune permission réseau ni stockage : l'accès aux fichiers passe par le sélecteur Android. Projet en cours : voir la documentation du dépôt pour les formats réellement pris en charge.",
+      "maintenance": "active",
+      "minSdk": 26,
+      "release": {
+        "tagPattern": "^v(\\d+\\.\\d+\\.\\d+-\\d+)$",
+        "apkPattern": "^ArcExtract-.*\\.apk$",
+        "updateDetection": "installedTag"
+      }
+    },
+    {
+      "id": "ninjago-wishlist",
+      "name": "Ninjago Wishlist",
+      "packageName": "com.ninjago.wishlist",
+      "repo": "notsogeek87/lieluwish",
+      "category": "Divertissement",
+      "shortDescription": "Tous les sets LEGO Ninjago, et un cœur pour dire à ses parents ce qu'on veut.",
+      "description": "Application Android native sans pub, sans tracker ni compte (seule permission : INTERNET). Les données viennent de Brickset, avec Rebrickable en secours.",
+      "maintenance": "active",
+      "minSdk": 26,
+      "listed": false,
+      "release": {
+        "tagPattern": "^main-(\\d+)$",
+        "apkPattern": "^release\\.main\\.apk$",
+        "updateDetection": "installedTag"
+      }
+    }
+  ]
+}
