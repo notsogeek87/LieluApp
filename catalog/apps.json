@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-16T00:00:00Z",
+  "updatedAt": "2026-10-16T21:00:00Z",
   "apps": [
     {
       "id": "swipernews",
@@ -128,6 +128,53 @@
       "release": {
         "tagPattern": "^main-(\\d+)$",
         "apkPattern": "^release\\.main\\.apk$",
+        "updateDetection": "installedTag"
+      }
+    },
+    {
+      "id": "lielukeep",
+      "name": "LieluKeep",
+      "packageName": "com.ruizlenato.karabau",
+      "repo": "notsogeek87/Lielukeep",
+      "category": "Productivité",
+      "shortDescription": "Client Android pour Karakeep : retrouvez, classez et ajoutez vos liens.",
+      "description": "Client Jetpack Compose pour votre serveur Karakeep (il en faut un). Accueil en liste de liens avec recherche (titre, URL, note, site), puces Tous / Favoris / À lire / dossier, glisser pour mettre en favori ou archiver, ajout depuis le menu Partager d'Android, dossiers et sous-dossiers, étiquette « à lire ». L'app appelle directement l'API de Karakeep : pas de copie locale à synchroniser. Dérivé de Karabau (GPL-3.0). Android 12 minimum.",
+      "maintenance": "active",
+      "featured": true,
+      "minSdk": 31,
+      "release": {
+        "tagPattern": "^v(\\d+(?:\\.\\d+)*)$",
+        "apkPattern": "^LieluKeep-.*\\.apk$"
+      }
+    },
+    {
+      "id": "trusti",
+      "name": "Trusti",
+      "packageName": "eu.trusti.app",
+      "repo": "notsogeek87/trusti",
+      "category": "Outils",
+      "shortDescription": "Évaluez la fiabilité et le respect de la vie privée de vos applications.",
+      "description": "Notes de A à E pour comparer les applications numériques sous l'angle de la vie privée et de la souveraineté des données, avec scan des applications installées sur le téléphone. Application Android qui encapsule le site Trusti : elle nécessite une connexion Internet (les données viennent du serveur Trusti, il n'y a pas de mode hors ligne). Sans compte.",
+      "maintenance": "active",
+      "featured": true,
+      "release": {
+        "tagPattern": "^v(\\d+(?:\\.\\d+)*)$",
+        "apkPattern": "^Trusti-.*\\.apk$"
+      }
+    },
+    {
+      "id": "lielufind",
+      "name": "LieluFind",
+      "packageName": "com.sunstep.travel.foss",
+      "repo": "notsogeek87/LieluFind",
+      "category": "Outils",
+      "shortDescription": "Client Android pour Dawarich : votre historique de positions auto-hébergé.",
+      "description": "Client mobile pour une instance Dawarich (serveur d'historique de positions auto-hébergé, indispensable) : connexion par adresse et clé d'API ou par QR code, chronologie façon Google Maps, statistiques du profil, gestion des points et enregistrement de nouveaux points depuis le téléphone. Variante FOSS (sans services Google). Dérivé du client communautaire de Sunstep (GPL-3.0). APK volumineux (environ 110 Mo).",
+      "maintenance": "active",
+      "minSdk": 24,
+      "release": {
+        "tagPattern": "^v(\\d+(?:\\.\\d+)*)$",
+        "apkPattern": "^LieluFind-.*\\.apk$",
         "updateDetection": "installedTag"
       }
     }

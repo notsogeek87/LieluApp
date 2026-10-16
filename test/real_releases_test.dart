@@ -80,4 +80,45 @@ void main() {
         ('v0.1.0-34', false, 'ArcExtract-0.1.0-34.apk'),
         ('v0.1.0-4', false, 'ArcExtract-0.1.0-4.apk'),
       ], 'v0.1.0-34', 'ArcExtract-0.1.0-34.apk'));
+
+  test('LieluKeep : 4 APK par release, celui du téléphone est choisi', () {
+    List<Map<String, dynamic>> withAbis(String tag) => [
+          {
+            'tag_name': tag,
+            'draft': false,
+            'prerelease': false,
+            'published_at': '2026-10-16T00:00:00Z',
+            'assets': [
+              for (final abi in ['arm64-v8a', 'armeabi-v7a', 'universal', 'x86_64'])
+                {
+                  'name': 'LieluKeep-${tag.substring(1)}-$abi.apk',
+                  'size': 4800000,
+                  'state': 'uploaded',
+                  'digest': 'sha256:${'b' * 64}',
+                  'browser_download_url': 'https://github.com/o/r/releases/download/$tag/$abi.apk',
+                }
+            ],
+          }
+        ];
+    final rules = app('lielukeep').release;
+    expect(selectRelease(rules, withAbis('v1.4.59'), deviceAbis: ['arm64-v8a', 'armeabi-v7a'])!
+        .apk!.name, 'LieluKeep-1.4.59-arm64-v8a.apk');
+    expect(selectRelease(rules, withAbis('v1.4.59'), deviceAbis: ['armeabi-v7a'])!.apk!.name,
+        'LieluKeep-1.4.59-armeabi-v7a.apk');
+    // Architecture inconnue du store : repli sur l'APK universel, jamais x86_64 par hasard.
+    expect(selectRelease(rules, withAbis('v1.4.59'), deviceAbis: ['riscv64'])!.apk!.name,
+        'LieluKeep-1.4.59-universal.apk');
+  });
+
+  test('Trusti', () => expectLatest('trusti', [
+        ('v1.0.278', false, 'Trusti-1.0.278.apk'),
+        ('debug-staging', true, 'Trusti-1.0.280.apk'),
+        ('v1.0.279', false, 'Trusti-1.0.279.apk'),
+      ], 'v1.0.279', 'Trusti-1.0.279.apk'));
+
+  test('LieluFind : tags v0.19.2.N', () => expectLatest('lielufind', [
+        ('v0.19.2.87', false, 'LieluFind-0.19.2.87.apk'),
+        ('v0.19.2.90', false, 'LieluFind-0.19.2.90.apk'),
+        ('v0.19.2.9', false, 'LieluFind-0.19.2.9.apk'),
+      ], 'v0.19.2.90', 'LieluFind-0.19.2.90.apk'));
 }
