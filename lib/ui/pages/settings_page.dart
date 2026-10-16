@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lieluapp/catalog/catalog_repository.dart';
 import 'package:lieluapp/core/format.dart';
+import 'package:lieluapp/features/app_update/app_update.dart';
+import 'package:lieluapp/features/app_update/app_update_installer.dart';
 import 'package:lieluapp/state/providers.dart';
 import 'package:lieluapp/state/settings.dart';
 import 'package:lieluapp/ui/widgets/links.dart';
@@ -147,6 +149,8 @@ class SettingsPage extends ConsumerWidget {
                         isThreeLine: true,
                       ),
                       const Divider(height: 1),
+                      _StoreUpdateTile(),
+                      const Divider(height: 1),
                       ListTile(
                         title: const Text('Code source du store'),
                         subtitle: const Text('github.com/notsogeek87/LieluApp'),
@@ -161,6 +165,40 @@ class SettingsPage extends ConsumerWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Manual check of the store's own update, with the reason when it fails.
+class _StoreUpdateTile extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final check = ref.watch(appUpdateCheckProvider);
+    final result = check.value;
+    final update = result?.update;
+    final String subtitle;
+    if (check.isLoading) {
+      subtitle = 'Vérification…';
+    } else if (result?.error != null) {
+      subtitle = 'Échec de la vérification : ${result!.error}';
+    } else if (update != null) {
+      subtitle = 'Nouvelle version disponible : ${update.versionName}';
+    } else {
+      subtitle = 'À jour (${result?.latestTag ?? '—'})';
+    }
+    return ListTile(
+      title: const Text('Mise à jour du store'),
+      subtitle: Text(subtitle),
+      trailing: check.isLoading
+          ? const SizedBox(
+              width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2.5))
+          : update != null
+              ? FilledButton(
+                  onPressed: () => downloadAndInstallUpdate(context, update),
+                  child: const Text('Mettre à jour'),
+                )
+              : const Icon(Icons.refresh),
+      onTap: check.isLoading ? null : () => ref.invalidate(appUpdateCheckProvider),
     );
   }
 }
