@@ -191,7 +191,8 @@
       "minSdk": 30,
       "release": {
         "tagPattern": "^v(\\d+(?:\\.\\d+)*)$",
-        "apkPattern": "^LieluPhoto-.*\\.apk$"
+        "apkPattern": "^LieluPhoto-.*\\.apk$",
+        "updateDetection": "installedTag"
       }
     }
   ]
