@@ -47,7 +47,7 @@ class AppActionButton extends ConsumerWidget {
                 : null,
             child: const Text('Mettre à jour'),
           );
-        case AppStatus.upToDate || AppStatus.unknown:
+        case AppStatus.upToDate || AppStatus.unknown || AppStatus.updateBlocked:
           child = FilledButton.tonal(
             onPressed: () => openApp(context, ref, view),
             child: const Text('Ouvrir'),

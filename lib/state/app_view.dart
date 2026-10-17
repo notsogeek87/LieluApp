@@ -11,6 +11,11 @@ enum AppStatus {
   /// Installée, mais on ne peut pas dire si elle est à jour (version illisible,
   /// ou dernière version inconnue faute de release/réseau).
   unknown,
+
+  /// Une version plus récente existe sur GitHub, mais l'app a été installée
+  /// via un autre magasin (ex. Play Store) ou signée avec une autre clé :
+  /// Android refuserait la mise à jour.
+  updateBlocked,
 }
 
 /// Une application du catalogue avec tout ce qu'on sait d'elle.
@@ -27,8 +32,33 @@ final class AppView {
   ReleaseInfo? get release => result?.release;
   bool get isInstalled => installed != null;
   bool get installable => release?.apk != null;
-  AppStatus get status => computeStatus(entry, installed, release, trackedTag);
+  AppStatus get status {
+    final s = computeStatus(entry, installed, release, trackedTag);
+    return s == AppStatus.updateAvailable && updateBlockedReason != null
+        ? AppStatus.updateBlocked
+        : s;
+  }
+
   bool get hasUpdate => status == AppStatus.updateAvailable;
+
+  /// Pourquoi la mise à jour GitHub ne pourrait pas s'installer (null = rien à signaler).
+  String? get updateBlockedReason {
+    final inst = installed;
+    if (inst == null) return null;
+    final pinned = entry.signingCertSha256;
+    if (pinned != null && inst.signers.isNotEmpty && !inst.signers.contains(pinned)) {
+      return 'Votre version (${inst.installerLabel}) n\'est pas signée avec la clé de la version GitHub : '
+          'Android refuserait la mise à jour. Désinstallez-la puis installez celle de GitHub '
+          '(les données de l\'app seront perdues).';
+    }
+    if (inst.fromForeignStore) {
+      return 'Installée via ${inst.installerLabel} : cette version est plus ancienne que celle de GitHub, '
+          'mais la mise à jour ne fonctionnera pas (signature différente). '
+          'Mettez-la à jour depuis ${inst.installerLabel}, ou désinstallez-la pour installer celle de GitHub '
+          '(les données de l\'app seront perdues).';
+    }
+    return null;
+  }
 }
 
 AppStatus computeStatus(

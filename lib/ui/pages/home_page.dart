@@ -17,8 +17,6 @@ class HomePage extends ConsumerWidget {
     final theme = Theme.of(context);
     final views = ref.watch(appViewsProvider);
     final updates = views.where((a) => a.hasUpdate).toList();
-    var featured = views.where((a) => a.entry.featured).toList();
-    if (featured.isEmpty) featured = views.take(3).toList();
     final news = views.where((a) => a.release?.publishedAt != null).toList()
       ..sort((a, b) => b.release!.publishedAt!.compareTo(a.release!.publishedAt!));
     final loading = ref.watch(catalogProvider).isLoading;
@@ -97,9 +95,9 @@ class HomePage extends ConsumerWidget {
             if (loading && views.isEmpty)
               const Padding(
                   padding: EdgeInsets.all(40), child: Center(child: CircularProgressIndicator())),
-            if (featured.isNotEmpty) ...[
-              _Header('Applications à la une', onSeeAll: onOpenCatalog),
-              for (final v in featured) _Gap(AppCard(v)),
+            if (views.isNotEmpty) ...[
+              _Header('Toutes les applications', onSeeAll: onOpenCatalog),
+              for (final v in views) _Gap(AppCard(v)),
             ],
             if (news.isNotEmpty) ...[
               const _Header('Dernières nouveautés'),

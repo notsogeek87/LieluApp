@@ -89,6 +89,12 @@ class AppDetailPage extends ConsumerWidget {
                       ),
                     ),
                   ),
+                if (view.updateBlockedReason != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: Text(view.updateBlockedReason!,
+                        style: theme.textTheme.bodySmall?.copyWith(color: LieluColors.amber)),
+                  ),
                 const SizedBox(height: 20),
                 _ReleaseProblem(view),
                 if (entry.screenshots.isNotEmpty) ...[
@@ -149,11 +155,12 @@ class AppDetailPage extends ConsumerWidget {
         AppStatus.upToDate => 'Installée · à jour',
         AppStatus.updateAvailable => 'Mise à jour disponible',
         AppStatus.unknown => 'Installée',
+        AppStatus.updateBlocked => 'Version GitHub plus récente · mise à jour impossible',
       };
 
   static Color _statusColor(AppView v) => switch (v.status) {
         AppStatus.upToDate => LieluColors.mint,
-        AppStatus.updateAvailable => LieluColors.amber,
+        AppStatus.updateAvailable || AppStatus.updateBlocked => LieluColors.amber,
         _ => LieluColors.textMuted,
       };
 }
@@ -320,6 +327,7 @@ class _InfoCard extends StatelessWidget {
     final entry = view.entry;
     final rows = <(String, String)>[
       ('Version installée', view.installed == null ? 'Non installée' : view.installed!.versionName),
+      if (view.installed != null) ('Installée via', view.installed!.installerLabel),
       ('Dernière version', release == null ? '—' : '${release.version}'),
       if (release != null) ('Publiée le', formatDate(release.publishedAt)),
       if (apk != null) ('Taille de l\'APK', formatBytes(apk.size)),

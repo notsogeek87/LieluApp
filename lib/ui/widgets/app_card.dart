@@ -101,6 +101,10 @@ class _VersionLabel extends StatelessWidget {
           'v${inst!.versionName} → v$latest',
           LieluColors.amber,
         ),
+      AppStatus.updateBlocked => (
+          'v${inst!.versionName} (${inst.installerLabel}) · GitHub : v$latest, mise à jour impossible',
+          LieluColors.amber,
+        ),
       AppStatus.upToDate => ('v${inst!.versionName} · à jour', LieluColors.mint),
       AppStatus.unknown => ('v${inst!.versionName} installée', null),
       AppStatus.notInstalled => (

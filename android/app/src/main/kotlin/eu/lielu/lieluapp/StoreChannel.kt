@@ -147,6 +147,17 @@ object StoreChannel {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) info.longVersionCode
         else @Suppress("DEPRECATION") info.versionCode.toLong()
 
+    /** Paquet qui a installé [pkg] (ex. com.android.vending), ou null si inconnu. */
+    private fun installerOf(pm: PackageManager, pkg: String): String? = try {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            pm.getInstallSourceInfo(pkg).installingPackageName
+        } else {
+            @Suppress("DEPRECATION") pm.getInstallerPackageName(pkg)
+        }
+    } catch (_: Exception) {
+        null
+    }
+
     private fun installed(context: Context, packages: List<String>): Map<String, Map<String, Any?>> {
         val pm = context.packageManager
         val out = HashMap<String, Map<String, Any?>>()
@@ -161,6 +172,7 @@ object StoreChannel {
                     "versionName" to (info.versionName ?: ""),
                     "versionCode" to versionCode(info),
                     "signers" to allSigners(info),
+                    "installer" to installerOf(pm, pkg),
                 )
             } catch (_: PackageManager.NameNotFoundException) {
                 // Non installée (ou invisible : voir <queries> dans le manifeste).

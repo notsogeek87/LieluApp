@@ -118,6 +118,18 @@ void main() {
   });
 
   group('computeStatus', () {
+    test('installée via le Play Store : la mise à jour GitHub est signalée impossible', () {
+      final play = InstalledInfo(
+          packageName: 'eu.lielu.demo',
+          versionName: '1.0.5',
+          versionCode: 5,
+          signers: const {'aa'},
+          installer: 'com.android.vending');
+      final v = AppView(entry(), installed: play, result: null);
+      expect(v.updateBlockedReason, contains('Play Store'));
+      final manual = AppView(entry(), installed: inst());
+      expect(manual.updateBlockedReason, isNull);
+    });
     test('non installée', () {
       expect(computeStatus(entry(), null, release('v1.0.9', '1.0.9'), null), AppStatus.notInstalled);
     });

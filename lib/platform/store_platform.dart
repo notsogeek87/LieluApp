@@ -10,12 +10,46 @@ final class InstalledInfo {
 
   /// SHA-256 (hex minuscule) des certificats de signature actuels et passés.
   final Set<String> signers;
+
+  /// Paquet qui a installé l'app (`com.android.vending` = Play Store), null si inconnu
+  /// (APK ouvert à la main, adb…).
+  final String? installer;
   const InstalledInfo({
     required this.packageName,
     required this.versionName,
     required this.versionCode,
     required this.signers,
+    this.installer,
   });
+
+  /// Magasins dont l'APK est (re)signé ou distribué autrement que celui de GitHub :
+  /// une mise à jour GitHub par-dessus serait refusée par Android.
+  static const _foreignStores = {
+    'com.android.vending',
+    'com.sec.android.app.samsungapps',
+    'com.amazon.venezia',
+    'org.fdroid.fdroid',
+    'com.aurora.store',
+    'com.huawei.appmarket',
+  };
+
+  bool get fromForeignStore => _foreignStores.contains(installer);
+
+  /// Nom lisible de la source d'installation.
+  String get installerLabel => switch (installer) {
+        null || '' => 'APK installé à la main',
+        'eu.lielu.lieluapp' => 'Lielu Store',
+        'com.android.vending' => 'Play Store',
+        'com.sec.android.app.samsungapps' => 'Galaxy Store',
+        'com.amazon.venezia' => 'Amazon Appstore',
+        'org.fdroid.fdroid' => 'F-Droid',
+        'com.aurora.store' => 'Aurora Store',
+        'com.huawei.appmarket' => 'AppGallery',
+        'com.google.android.packageinstaller' ||
+        'com.android.packageinstaller' =>
+          'APK installé à la main',
+        final other => other,
+      };
 }
 
 /// Ce que dit un fichier APK, lu par Android sans l'installer.
@@ -115,6 +149,7 @@ final class MethodChannelStorePlatform implements StorePlatform {
         versionName: m['versionName'] as String? ?? '',
         versionCode: (m['versionCode'] as num?)?.toInt() ?? 0,
         signers: Set<String>.from(m['signers'] as List? ?? const []),
+        installer: m['installer'] as String?,
       );
     }
     return out;
