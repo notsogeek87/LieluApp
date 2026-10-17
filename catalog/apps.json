@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-16T21:00:00Z",
+  "updatedAt": "2026-10-17T16:00:00Z",
   "apps": [
     {
       "id": "swipernews",
@@ -176,6 +176,22 @@
         "tagPattern": "^v(\\d+(?:\\.\\d+)*)$",
         "apkPattern": "^LieluFind-.*\\.apk$",
         "updateDetection": "installedTag"
+      }
+    },
+    {
+      "id": "lieluphoto",
+      "name": "LieluPhoto",
+      "packageName": "eu.lielu.photo",
+      "repo": "notsogeek87/lieluphoto",
+      "category": "Outils",
+      "shortDescription": "Appareil photo façon hybride : LUT, recettes de couleur, rafale et photos animées.",
+      "description": "Application photo Android open source qui reproduit le rendu et la prise en main d'un appareil hybride moderne : import de LUT (.cube, .png, .xmp) avec aperçu en temps réel, recettes de couleur (exposition, contraste, grain, vignettage, bloom…), photos animées, rafale rapide, empilement multi-images et mode portrait à grande ouverture (modèle d'IA local). Dérivé de Photon Camera. Android 11 minimum, arm64.",
+      "maintenance": "active",
+      "featured": true,
+      "minSdk": 30,
+      "release": {
+        "tagPattern": "^v(\\d+(?:\\.\\d+)*)$",
+        "apkPattern": "^LieluPhoto-.*\\.apk$"
       }
     }
   ]

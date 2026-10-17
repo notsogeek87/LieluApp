@@ -121,4 +121,10 @@ void main() {
         ('v0.19.2.90', false, 'LieluFind-0.19.2.90.apk'),
         ('v0.19.2.9', false, 'LieluFind-0.19.2.9.apk'),
       ], 'v0.19.2.90', 'LieluFind-0.19.2.90.apk'));
+
+  test('LieluPhoto : tags v1.28.4.N', () => expectLatest('lieluphoto', [
+        ('v1.28.4.9', false, 'LieluPhoto-1.28.4.9.apk'),
+        ('v1.28.4.12', false, 'LieluPhoto-1.28.4.12.apk'),
+        ('debug-staging', true, 'LieluPhoto-1.28.4.13.apk'),
+      ], 'v1.28.4.12', 'LieluPhoto-1.28.4.12.apk'));
 }
