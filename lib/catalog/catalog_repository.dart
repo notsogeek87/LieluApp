@@ -37,15 +37,25 @@ final class CatalogRepository {
 
   /// Catalogue disponible sans réseau (cache, sinon copie embarquée).
   Future<CatalogParseResult> loadLocal() async {
+    final bundled = parseCatalog(await _loadBundled());
     final cached = _prefs.getString(_cacheKey);
     if (cached != null) {
       try {
-        return parseCatalog(cached);
+        final parsed = parseCatalog(cached);
+        // Une copie en cache plus ancienne que l'APK ne doit pas masquer les
+        // apps ajoutées depuis : on complète avec les entrées embarquées
+        // absentes du cache (par id ou par packageName).
+        final ids = parsed.entries.map((e) => e.id).toSet();
+        final packages = parsed.entries.map((e) => e.packageName).toSet();
+        final missing = bundled.entries
+            .where((e) => !ids.contains(e.id) && !packages.contains(e.packageName));
+        return CatalogParseResult(
+            [...parsed.entries, ...missing], parsed.issues, parsed.updatedAt);
       } on FormatException {
         // Cache corrompu : on retombe sur la copie embarquée.
       }
     }
-    return parseCatalog(await _loadBundled());
+    return bundled;
   }
 
   /// Télécharge le catalogue distant. Retourne null en cas d'échec réseau ou
