@@ -127,4 +127,10 @@ void main() {
         ('v1.28.4.12', false, 'LieluPhoto-1.28.4.12.apk'),
         ('debug-staging', true, 'LieluPhoto-1.28.4.13.apk'),
       ], 'v1.28.4.12', 'LieluPhoto-1.28.4.12.apk'));
+
+  test('allCommand : pré-release staging-v… ignorée', () => expectLatest('allcommand', [
+        ('v1.0.3', false, 'allCommand-1.0.3.apk'),
+        ('v1.0.4', false, 'allCommand-1.0.4.apk'),
+        ('staging-v1.0.5', true, 'allCommand-Staging-1.0.5.apk'),
+      ], 'v1.0.4', 'allCommand-1.0.4.apk'));
 }

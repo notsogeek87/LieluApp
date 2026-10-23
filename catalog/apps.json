@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-17T16:00:00Z",
+  "updatedAt": "2026-10-23T12:00:00Z",
   "apps": [
     {
       "id": "swipernews",
@@ -193,6 +193,22 @@
         "tagPattern": "^v(\\d+(?:\\.\\d+)*)$",
         "apkPattern": "^LieluPhoto-.*\\.apk$",
         "updateDetection": "installedTag"
+      }
+    },
+    {
+      "id": "allcommand",
+      "name": "allCommand",
+      "packageName": "com.lielu.allcommand",
+      "repo": "notsogeek87/allcommand",
+      "category": "Outils",
+      "shortDescription": "Télécommande pour plusieurs appareils : Philips Titan OS, Android TV à venir.",
+      "description": "Télécommande Android (Kotlin, Jetpack Compose) pour plusieurs appareils : appairage d'une télé Philips Titan OS par code à 4 chiffres, puis touches via MQTT sur TLS. Android TV prévu. Sauvegarde et restauration JSON incluses ; les secrets d'appairage restent sur l'appareil.",
+      "maintenance": "active",
+      "minSdk": 26,
+      "release": {
+        "tagPattern": "^v(\\d+(?:\\.\\d+)*)$",
+        "apkPattern": "^allCommand-.*\\.apk$",
+        "apkExclude": "Staging"
       }
     }
   ]
