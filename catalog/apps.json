@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-23T12:00:00Z",
+  "updatedAt": "2026-10-26T12:00:00Z",
   "apps": [
     {
       "id": "swipernews",
@@ -208,6 +208,22 @@
       "release": {
         "tagPattern": "^v(\\d+(?:\\.\\d+)*)$",
         "apkPattern": "^allCommand-.*\\.apk$",
+        "apkExclude": "Staging"
+      }
+    },
+    {
+      "id": "lielutodo",
+      "name": "LieluTodo",
+      "packageName": "com.lielu.todo",
+      "repo": "notsogeek87/lielutodo",
+      "category": "Productivité",
+      "shortDescription": "Liste de tâches Lielu, avec sauvegarde automatique et mise à jour intégrée.",
+      "description": "Application Android (Kotlin, Jetpack Compose) de liste de tâches. Sauvegarde automatique dans le dossier de votre choix, export/import manuel et restauration ; mise à jour depuis les releases GitHub.",
+      "maintenance": "active",
+      "minSdk": 26,
+      "release": {
+        "tagPattern": "^v(\\d+(?:\\.\\d+)*)$",
+        "apkPattern": "^LieluTodo-.*\\.apk$",
         "apkExclude": "Staging"
       }
     }

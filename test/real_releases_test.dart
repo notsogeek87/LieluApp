@@ -133,4 +133,9 @@ void main() {
         ('v1.0.4', false, 'allCommand-1.0.4.apk'),
         ('staging-v1.0.5', true, 'allCommand-Staging-1.0.5.apk'),
       ], 'v1.0.4', 'allCommand-1.0.4.apk'));
+
+  test('LieluTodo : pré-release staging-v… ignorée', () => expectLatest('lielutodo', [
+        ('v1.0.1', false, 'LieluTodo-1.0.1.apk'),
+        ('staging-v1.0.2', true, 'LieluTodo-Staging-1.0.2.apk'),
+      ], 'v1.0.1', 'LieluTodo-1.0.1.apk'));
 }
