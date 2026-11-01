@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:lieluapp/platform/store_platform.dart';
 import 'package:lieluapp/state/providers.dart';
 import 'package:lieluapp/state/settings.dart';
+import 'package:lieluapp/catalog/catalog_repository.dart';
 import 'package:lieluapp/features/home_widget/widget_order.dart';
 import 'package:lieluapp/main.dart';
 import 'package:lieluapp/ui/shell.dart';
@@ -113,18 +115,21 @@ void main() {
     });
     final prefs = await SharedPreferences.getInstance();
     final platform = FakePlatform();
+    final dio = fakeDio((_) => text('[]', 200));
+    // Catalogue lu directement (lecture synchrone) : l'asset embarqué passe par une
+    // vraie E/S qui n'aboutit pas de façon fiable en temps simulé.
+    final catalogJson = File('catalog/apps.json').readAsStringSync();
     await tester.pumpWidget(ProviderScope(
       overrides: [
         sharedPrefsProvider.overrideWithValue(prefs),
         platformProvider.overrideWithValue(platform),
-        dioProvider.overrideWithValue(fakeDio((_) => text('[]', 200))),
+        dioProvider.overrideWithValue(dio),
+        catalogRepositoryProvider.overrideWithValue(
+            CatalogRepository(dio, prefs, loadBundled: () async => catalogJson)),
       ],
       child: const LieluStoreApp(),
     ));
-    // Le catalogue embarqué se charge de façon asynchrone : on attend qu'il arrive au widget.
-    // La lecture de l'asset est une vraie E/S : elle n'avance pas en temps simulé.
-    for (var i = 0; i < 30; i++) {
-      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 50)));
+    for (var i = 0; i < 20; i++) {
       await tester.pump(const Duration(milliseconds: 200));
       if (platform.widgetUpdates.isNotEmpty && platform.widgetUpdates.last != '[]') break;
     }
