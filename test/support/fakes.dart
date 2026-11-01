@@ -67,6 +67,13 @@ final class FakePlatform implements StorePlatform {
   Future<bool> canInstallPackages() async => canInstall;
   @override
   Future<void> openInstallSettings() async {}
+  final widgetUpdates = <String>[];
+  @override
+  Future<void> updateWidget(String itemsJson) async => widgetUpdates.add(itemsJson);
+  @override
+  Future<String?> takeWidgetLaunch() async => null;
+  @override
+  Stream<String> get widgetLaunches => const Stream.empty();
   @override
   Future<InstallResult> install(String path, String packageName) async {
     installCalls.add(path);

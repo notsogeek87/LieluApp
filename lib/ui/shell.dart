@@ -1,5 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lieluapp/features/home_widget/widget_order.dart';
+import 'package:lieluapp/ui/pages/detail_page.dart';
 import 'package:lieluapp/state/providers.dart';
 import 'package:lieluapp/ui/pages/apps_page.dart';
 import 'package:lieluapp/ui/pages/downloads_page.dart';
@@ -17,15 +21,47 @@ class Shell extends ConsumerStatefulWidget {
 
 class _ShellState extends ConsumerState<Shell> with WidgetsBindingObserver {
   int _index = 0;
+  String? _lastWidgetPayload;
+  StreamSubscription<String>? _widgetLaunchSub;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    // Le widget d'écran d'accueil suit le catalogue et l'ordre choisi par l'utilisateur.
+    ref.listenManual(widgetAppsProvider, (_, apps) => _syncWidget(widgetPayload(apps)),
+        fireImmediately: true);
+    final platform = ref.read(platformProvider);
+    _widgetLaunchSub = platform.widgetLaunches.listen(_openFromWidget);
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      try {
+        final id = await platform.takeWidgetLaunch();
+        if (id != null) _openFromWidget(id);
+      } on Object {
+        // Pas de widget (ou canal indisponible) : rien à ouvrir.
+      }
+    });
+  }
+
+  Future<void> _syncWidget(String payload) async {
+    if (payload == _lastWidgetPayload) return;
+    _lastWidgetPayload = payload;
+    try {
+      await ref.read(platformProvider).updateWidget(payload);
+    } on Object {
+      _lastWidgetPayload = null;
+    }
+  }
+
+  void _openFromWidget(String appId) {
+    if (!mounted) return;
+    Navigator.of(context).push(
+        MaterialPageRoute<void>(builder: (_) => AppDetailPage(appId: appId)));
   }
 
   @override
   void dispose() {
+    _widgetLaunchSub?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }

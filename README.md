@@ -6,6 +6,10 @@ releases GitHub publiques, sans compte ni connexion GitHub.
 - **Ajouter une application** : [docs/AJOUTER-UNE-APP.md](docs/AJOUTER-UNE-APP.md) (une entrée dans `catalog/apps.json`, sans republier le store).
 - **Architecture** : [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
+- **Widget d'écran d'accueil** « Applications Lielu » : grille de toutes les apps du catalogue (Android et web).
+  L'ordre se règle à la main dans *Paramètres → Widget d'accueil* (glisser-déposer). Un appui ouvre l'app
+  installée, l'app web dans le navigateur, ou la fiche du store si l'app n'est pas installée.
+
 Application Flutter (Riverpod, Dio), avec une couche native Kotlin (`PackageManager` / `PackageInstaller`).
 Package Android : `eu.lielu.lieluapp`.
 

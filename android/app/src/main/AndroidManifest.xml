@@ -31,6 +31,32 @@
             android:name=".InstallResultReceiver"
             android:exported="false"/>
 
+        <!-- Widget d'écran d'accueil « Applications Lielu » -->
+        <receiver
+            android:name=".AppsWidgetProvider"
+            android:exported="false"
+            android:label="@string/widget_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/apps_widget_info"/>
+        </receiver>
+
+        <service
+            android:name=".AppsWidgetService"
+            android:exported="false"
+            android:permission="android.permission.BIND_REMOTEVIEWS"/>
+
+        <activity
+            android:name=".WidgetLaunchActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:taskAffinity=""
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"/>
+
         <activity
             android:name=".MainActivity"
             android:exported="true"

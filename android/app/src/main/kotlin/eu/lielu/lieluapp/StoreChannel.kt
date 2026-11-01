@@ -95,6 +95,13 @@ object StoreChannel {
                             }.start()
                         }
                     }
+                    "updateWidget" -> {
+                        val items = call.argument<String>("items") ?: "[]"
+                        HomeWidget.save(app, items)
+                        HomeWidget.refresh(app)
+                        result.success(null)
+                    }
+                    "takeWidgetLaunch" -> result.success(HomeWidget.takePendingLaunch())
                     else -> result.notImplemented()
                 }
             } catch (e: Exception) {
@@ -111,6 +118,11 @@ object StoreChannel {
                 mapOf("package" to pkg, "ok" to ok, "code" to code, "message" to message)
             )
         }
+    }
+
+    /** Fiche demandée depuis le widget alors que le store est déjà ouvert. */
+    fun emitWidgetLaunch(id: String) {
+        main.post { channel?.invokeMethod("widgetLaunch", mapOf("id" to id)) }
     }
 
     // ------------------------------------------------------------ lecture

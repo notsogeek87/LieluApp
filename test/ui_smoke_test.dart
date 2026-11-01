@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -80,7 +82,10 @@ void main() {
     await tester.pump(const Duration(milliseconds: 400));
     expect(find.text('Backlog'), findsOneWidget);
     expect(find.text('Mettre à jour'), findsOneWidget); // Backlog 1.0.5 → 1.0.9
-    expect(find.text('Ouvrir'), findsOneWidget); // Vizuzik à jour
+    // Vizuzik à jour + les applications web (bouton « Ouvrir » avec icône de lien externe).
+    final webApps = find.byIcon(Icons.open_in_new).evaluate().length;
+    expect(webApps, greaterThanOrEqualTo(1));
+    expect(find.text('Ouvrir'), findsNWidgets(1 + webApps));
     expect(find.text('Installer'), findsWidgets); // SwiperNews non installée
     expect(find.text('Ninjago Wishlist'), findsNothing); // listed:false
 
@@ -98,5 +103,28 @@ void main() {
     expect(find.text('Notes de version 1.0.9'), findsOneWidget);
     expect(find.textContaining('Correctif important'), findsOneWidget);
     expect(find.text('Aucune somme de contrôle publiée'), findsOneWidget);
+  });
+
+  testWidgets('widget d\'accueil : toutes les apps envoyées, dans l\'ordre choisi', (tester) async {
+    SharedPreferences.setMockInitialValues({
+      'widget.order': ['vizuzik', 'kigardeki'],
+    });
+    final prefs = await SharedPreferences.getInstance();
+    final platform = FakePlatform();
+    await tester.pumpWidget(ProviderScope(
+      overrides: [
+        sharedPrefsProvider.overrideWithValue(prefs),
+        platformProvider.overrideWithValue(platform),
+        dioProvider.overrideWithValue(fakeDio((_) => text('[]', 200))),
+      ],
+      child: const LieluStoreApp(),
+    ));
+    for (var i = 0; i < 5; i++) {
+      await tester.pump(const Duration(milliseconds: 200));
+    }
+    expect(platform.widgetUpdates, isNotEmpty);
+    final items = (jsonDecode(platform.widgetUpdates.last) as List).cast<Map<String, dynamic>>();
+    expect(items.take(2).map((i) => i['id']), ['vizuzik', 'kigardeki']);
+    expect(items.any((i) => i['id'] == 'swipernews'), isTrue);
   });
 }

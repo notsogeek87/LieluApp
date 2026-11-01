@@ -109,14 +109,29 @@ abstract interface class StorePlatform {
 
   /// Installe via PackageInstaller ; Android affiche sa propre confirmation.
   Future<InstallResult> install(String path, String packageName);
+
+  /// Transmet au widget d'écran d'accueil la liste ordonnée des apps (JSON).
+  Future<void> updateWidget(String itemsJson);
+
+  /// App dont la fiche a été demandée depuis le widget au lancement du store (une seule fois).
+  Future<String?> takeWidgetLaunch();
+
+  /// Fiches demandées depuis le widget pendant que le store est ouvert.
+  Stream<String> get widgetLaunches;
 }
 
 final class MethodChannelStorePlatform implements StorePlatform {
   static const _channel = MethodChannel('eu.lielu.lieluapp/store');
   final Map<String, void Function(InstallResult)> _pending = {};
+  final _widgetLaunches = StreamController<String>.broadcast();
 
   MethodChannelStorePlatform() {
     _channel.setMethodCallHandler((call) async {
+      if (call.method == 'widgetLaunch') {
+        final id = (call.arguments as Map?)?['id'];
+        if (id is String) _widgetLaunches.add(id);
+        return;
+      }
       if (call.method == 'installResult') {
         final a = Map<String, dynamic>.from(call.arguments as Map);
         final cb = _pending.remove(a['package']);
@@ -177,6 +192,16 @@ final class MethodChannelStorePlatform implements StorePlatform {
   @override
   Future<bool> canInstallPackages() async =>
       await _channel.invokeMethod<bool>('canInstall') ?? false;
+
+  @override
+  Future<void> updateWidget(String itemsJson) =>
+      _channel.invokeMethod('updateWidget', {'items': itemsJson});
+
+  @override
+  Future<String?> takeWidgetLaunch() => _channel.invokeMethod<String>('takeWidgetLaunch');
+
+  @override
+  Stream<String> get widgetLaunches => _widgetLaunches.stream;
 
   @override
   Future<void> openInstallSettings() => _channel.invokeMethod('openInstallSettings');

@@ -6,6 +6,7 @@ import 'package:lieluapp/features/app_update/app_update.dart';
 import 'package:lieluapp/features/app_update/app_update_installer.dart';
 import 'package:lieluapp/state/providers.dart';
 import 'package:lieluapp/state/settings.dart';
+import 'package:lieluapp/ui/pages/widget_order_page.dart';
 import 'package:lieluapp/ui/widgets/links.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
@@ -92,6 +93,17 @@ class SettingsPage extends ConsumerWidget {
                     ),
                   ),
                 ],
+                _Title('Widget d\'accueil'),
+                Card(
+                  child: ListTile(
+                    leading: const Icon(Icons.widgets_outlined),
+                    title: const Text('Ordre des applications'),
+                    subtitle: const Text('Classez à la main les apps affichées par le widget'),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute<void>(builder: (_) => const WidgetOrderPage())),
+                  ),
+                ),
                 _Title('Apparence'),
                 Card(
                   child: Padding(
