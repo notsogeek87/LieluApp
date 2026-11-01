@@ -168,7 +168,7 @@
     {
       "id": "lielufind",
       "name": "LieluFind",
-      "packageName": "com.sunstep.travel.foss",
+      "packageName": "eu.lielu.find.foss",
       "repo": "notsogeek87/LieluFind",
       "category": "Outils",
       "shortDescription": "Client Android pour Dawarich : votre historique de positions auto-hébergé.",
