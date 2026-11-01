@@ -3,7 +3,7 @@
 
 Pour chaque entrée avec `repo` : dernière release retenue par les règles du
 catalogue (tagPattern, apkPattern, apkExclude, includePrereleases), téléchargement
-de l'APK, lecture du certificat par `apksigner`, puis :
+de l'APK, lecture du certificat dans son bloc de signature v2/v3, puis :
 
 - pas encore d'empreinte  -> `signingCertSha256` est ajouté ;
 - empreinte identique     -> rien ;
@@ -11,10 +11,12 @@ de l'APK, lecture du certificat par `apksigner`, puis :
 - clé de debug (DN « Debug ») -> signalée, jamais épinglée : une clé publique ne protège de rien.
 
 Usage (sur un runner GitHub, `gh` authentifié) :
-    python3 tool/catalog_pins.py catalog/apps.json <apksigner> <rapport.md>
+    python3 tool/catalog_pins.py catalog/apps.json <rapport.md>
 """
+import hashlib
 import json
 import re
+import struct
 import subprocess
 import sys
 import tempfile
@@ -50,16 +52,52 @@ def pick_apk(entry):
     return None
 
 
-def signer(apksigner, apk):
-    out = subprocess.run([apksigner, "verify", "--print-certs", apk],
-                         capture_output=True, text=True).stdout
-    dns = re.findall(r"^Signer #\d+ certificate DN: (.*)$", out, re.M)
-    fps = re.findall(r"^Signer #\d+ certificate SHA-256 digest: ([0-9a-f]{64})$", out, re.M)
+# Blocs du « APK Signing Block », du plus récent au plus ancien : le premier présent
+# porte les certificats *actuels* (v3.1 / v3 en cas de rotation de clé, sinon v2).
+_SCHEMES = (0x1B93AD61, 0xF05368C0, 0x7109871A)
+
+
+def _lp(buf, off):
+    n = struct.unpack("<I", buf[off:off + 4])[0]
+    return buf[off + 4:off + 4 + n], off + 4 + n
+
+
+def signer(apk):
+    """(DN, SHA-256 du certificat DER) de chaque signataire, lus dans le bloc de signature v2/v3."""
+    data = Path(apk).read_bytes()
+    eocd = data.rfind(b"PK\x05\x06")
+    if eocd < 0:
+        raise ValueError("pas une archive ZIP")
+    cd = struct.unpack("<I", data[eocd + 16:eocd + 20])[0]
+    if data[cd - 16:cd] != b"APK Sig Block 42":
+        raise ValueError("pas de signature v2/v3 (APK v1 seulement ?)")
+    size = struct.unpack("<Q", data[cd - 24:cd - 16])[0]
+    block = data[cd - size:cd - 24]  # [taille][paires…][taille][magie] : paires seules
+    found, off = {}, 0
+    while off + 12 <= len(block):
+        n = struct.unpack("<Q", block[off:off + 8])[0]
+        found[struct.unpack("<I", block[off + 8:off + 12])[0]] = block[off + 12:off + 8 + n]
+        off += 8 + n
+    value = next((found[s] for s in _SCHEMES if s in found), None)
+    if value is None:
+        raise ValueError("bloc de signature sans schéma v2/v3")
+    signers, _ = _lp(value, 0)
+    dns, fps, so = [], [], 0
+    while so < len(signers):
+        one, so = _lp(signers, so)
+        signed, _ = _lp(one, 0)
+        _, p = _lp(signed, 0)          # digests
+        certs, _ = _lp(signed, p)      # certificats, le premier est celui du signataire
+        der, _ = _lp(certs, 0)
+        fps.append(hashlib.sha256(der).hexdigest())
+        subj = subprocess.run(["openssl", "x509", "-inform", "der", "-noout", "-subject",
+                               "-nameopt", "RFC2253"], input=der, capture_output=True).stdout
+        dns.append(subj.decode(errors="replace").strip().removeprefix("subject="))
     return dns, fps
 
 
 def main():
-    catalog_path, apksigner, report_path = sys.argv[1:4]
+    catalog_path, report_path = sys.argv[1:3]
     text = Path(catalog_path).read_text(encoding="utf-8")
     catalog = json.loads(text)
     rows, changed = [], False
@@ -77,7 +115,7 @@ def main():
             with tempfile.TemporaryDirectory() as d:
                 apk = f"{d}/app.apk"
                 urllib.request.urlretrieve(url, apk)
-                dns, fps = signer(apksigner, apk)
+                dns, fps = signer(apk)
         except Exception as e:  # noqa: BLE001 — une app en échec ne bloque pas les autres
             rows.append((name, "—", "—", f"⚠️ erreur : {e}"))
             continue
