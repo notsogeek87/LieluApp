@@ -98,12 +98,37 @@ final class WidgetIconSizeNotifier extends Notifier<int> {
 final widgetIconSizeProvider =
     NotifierProvider<WidgetIconSizeNotifier, int>(WidgetIconSizeNotifier.new);
 
-/// Données transmises au widget Android (JSON) : taille des icônes (dp) et apps dans
+/// Transparence du fond du widget, en % : 0 = fond opaque, 100 = invisible.
+const widgetTransparencyStep = 5;
+const widgetTransparencyDefault = 10;
+
+final class WidgetTransparencyNotifier extends Notifier<int> {
+  static const _key = 'widget.transparency';
+
+  @override
+  int build() => clamp(ref.read(sharedPrefsProvider).getInt(_key) ?? widgetTransparencyDefault);
+
+  static int clamp(int percent) =>
+      ((percent / widgetTransparencyStep).round() * widgetTransparencyStep).clamp(0, 100);
+
+  Future<void> set(int percent) async {
+    state = clamp(percent);
+    await ref.read(sharedPrefsProvider).setInt(_key, state);
+  }
+}
+
+final widgetTransparencyProvider =
+    NotifierProvider<WidgetTransparencyNotifier, int>(WidgetTransparencyNotifier.new);
+
+/// Données transmises au widget Android (JSON) : taille des icônes (dp), transparence
+/// du fond (%) et apps dans
 /// l'ordre choisi. L'état « installée » est relu par le widget lui-même, pour
 /// rester juste même si le store n'est pas ouvert.
-String widgetPayload(List<AppView> apps, [int iconDp = widgetIconDefaultDp]) =>
+String widgetPayload(List<AppView> apps,
+        [int iconDp = widgetIconDefaultDp, int transparency = widgetTransparencyDefault]) =>
     jsonEncode({
       'iconDp': iconDp,
+      'transparency': transparency,
       'items': [
         for (final v in apps)
           {
@@ -115,8 +140,10 @@ String widgetPayload(List<AppView> apps, [int iconDp = widgetIconDefaultDp]) =>
       ],
     });
 
-final homeWidgetPayloadProvider = Provider<String>((ref) =>
-    widgetPayload(ref.watch(widgetAppsProvider), ref.watch(widgetIconSizeProvider)));
+final homeWidgetPayloadProvider = Provider<String>((ref) => widgetPayload(
+    ref.watch(widgetAppsProvider),
+    ref.watch(widgetIconSizeProvider),
+    ref.watch(widgetTransparencyProvider)));
 
 /// Tient le widget d'écran d'accueil à jour (catalogue, apps installées, ordre,
 /// taille). Écoute au niveau du conteneur : contrairement à un écran, cette écoute

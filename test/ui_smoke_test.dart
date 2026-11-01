@@ -162,5 +162,10 @@ void main() {
     await container.read(widgetIconSizeProvider.notifier).set(112);
     await settle();
     expect((jsonDecode(platform.widgetUpdates.last) as Map)['iconDp'], 112);
+
+    // Transparence du fond transmise.
+    await container.read(widgetTransparencyProvider.notifier).set(60);
+    await settle();
+    expect((jsonDecode(platform.widgetUpdates.last) as Map)['transparency'], 60);
   });
 }

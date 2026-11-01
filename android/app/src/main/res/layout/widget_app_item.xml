@@ -24,5 +24,7 @@
         android:gravity="center"
         android:maxLines="1"
         android:textColor="#F2FFFFFF"
+        android:shadowColor="#99000000"
+        android:shadowRadius="3"
         android:textSize="11sp" />
 </LinearLayout>

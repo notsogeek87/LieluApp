@@ -42,4 +42,11 @@ void main() {
     expect(WidgetIconSizeNotifier.clamp(57), 56);
     expect(WidgetIconSizeNotifier.clamp(59), 60);
   });
+
+  test('transparence : bornée de 0 à 100 et arrondie au pas', () {
+    expect(WidgetTransparencyNotifier.clamp(-10), 0);
+    expect(WidgetTransparencyNotifier.clamp(130), 100);
+    expect(WidgetTransparencyNotifier.clamp(42), 40);
+    expect(WidgetTransparencyNotifier.clamp(43), 45);
+  });
 }

@@ -44,6 +44,8 @@ class WidgetOrderPage extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _IconSizeSetting(size: size, preview: apps.take(4).toList()),
+                  const SizedBox(height: 8),
+                  _TransparencySetting(preview: apps.take(4).toList()),
                   const SizedBox(height: 20),
                   Text('Ordre des applications', style: theme.textTheme.titleSmall),
                   const SizedBox(height: 8),
@@ -169,6 +171,79 @@ class _IconSizeSetting extends ConsumerWidget {
                           ),
                         ),
                     ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Transparence du fond du widget, avec un aperçu sur un faux fond d'écran.
+class _TransparencySetting extends ConsumerWidget {
+  final List<AppView> preview;
+  const _TransparencySetting({required this.preview});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final transparency = ref.watch(widgetTransparencyProvider);
+    final notifier = ref.read(widgetTransparencyProvider.notifier);
+    final opacity = (100 - transparency) / 100;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(child: Text('Transparence du fond', style: theme.textTheme.titleSmall)),
+                Text(
+                    switch (transparency) {
+                      0 => 'Opaque',
+                      100 => 'Invisible',
+                      _ => '$transparency %',
+                    },
+                    style: theme.textTheme.labelLarge),
+              ],
+            ),
+            Slider(
+              min: 0,
+              max: 100,
+              divisions: 100 ~/ widgetTransparencyStep,
+              value: transparency.toDouble(),
+              label: '$transparency %',
+              onChanged: (v) => notifier.set(v.round()),
+            ),
+            // Aperçu : le fond du widget posé sur un faux fond d'écran.
+            ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: DecoratedBox(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Color(0xFF3DDC97), Color(0xFF5B8DEF), Color(0xFFFF8A5B)],
+                  ),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF141826).withValues(alpha: opacity),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        for (final v in preview) AppIcon(v.entry, size: 40),
+                      ],
+                    ),
                   ),
                 ),
               ),

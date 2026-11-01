@@ -97,8 +97,8 @@ class SettingsPage extends ConsumerWidget {
                 Card(
                   child: ListTile(
                     leading: const Icon(Icons.widgets_outlined),
-                    title: const Text('Ordre et taille des applications'),
-                    subtitle: const Text('Classez à la main les apps du widget et réglez la taille des icônes'),
+                    title: const Text('Ordre, taille et transparence'),
+                    subtitle: const Text('Classez les apps du widget, réglez la taille des icônes et la transparence du fond'),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () => Navigator.of(context).push(
                         MaterialPageRoute<void>(builder: (_) => const WidgetOrderPage())),

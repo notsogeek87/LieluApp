@@ -53,6 +53,8 @@ class AppsWidgetProvider : AppWidgetProvider() {
             )
             for (id in ids) {
                 val views = RemoteViews(context.packageName, R.layout.widget_apps)
+                // Transparence du fond choisie dans le store.
+                views.setInt(R.id.widget_bg, "setImageAlpha", HomeWidget.backgroundAlpha(context))
                 // Largeur des colonnes suivant la taille des icônes choisie dans le store.
                 views.setInt(
                     R.id.widget_grid, "setColumnWidth",
