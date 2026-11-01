@@ -119,8 +119,10 @@ void main() {
       ],
       child: const LieluStoreApp(),
     ));
-    for (var i = 0; i < 5; i++) {
+    // Le catalogue embarqué se charge de façon asynchrone : on attend qu'il arrive au widget.
+    for (var i = 0; i < 30; i++) {
       await tester.pump(const Duration(milliseconds: 200));
+      if (platform.widgetUpdates.isNotEmpty && platform.widgetUpdates.last != '[]') break;
     }
     expect(platform.widgetUpdates, isNotEmpty);
     final items = (jsonDecode(platform.widgetUpdates.last) as List).cast<Map<String, dynamic>>();
