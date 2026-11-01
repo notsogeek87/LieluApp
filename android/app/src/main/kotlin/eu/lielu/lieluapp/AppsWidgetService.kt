@@ -72,7 +72,7 @@ class AppsWidgetFactory(private val context: Context) : RemoteViewsService.Remot
     // ------------------------------------------------------------- icônes
 
     private fun icon(app: WidgetApp): Bitmap = icons.getOrPut(app.id) {
-        bundledIcon(app.id)?.let(::rounded) ?: installedIcon(app.packageName) ?: letterIcon(app)
+        bundledIcon(app.id)?.let { rounded(it) } ?: installedIcon(app.packageName) ?: letterIcon(app)
     }
 
     /** Logo embarqué dans l'APK par Flutter (catalog/icons/<id>.png). */
