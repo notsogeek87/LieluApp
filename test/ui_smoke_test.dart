@@ -158,8 +158,8 @@ void main() {
     expect(lastItems().take(2).map((i) => i['id']), ['swipernews', 'backlog']);
 
     // Taille des icônes transmise.
-    await container.read(widgetIconSizeProvider.notifier).set(WidgetIconSize.large);
+    await container.read(widgetIconSizeProvider.notifier).set(112);
     await settle();
-    expect((jsonDecode(platform.widgetUpdates.last) as Map)['size'], 'large');
+    expect((jsonDecode(platform.widgetUpdates.last) as Map)['iconDp'], 112);
   });
 }

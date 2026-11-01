@@ -43,8 +43,21 @@ class AppsWidgetProvider : AppWidgetProvider() {
                 Intent(context, WidgetLaunchActivity::class.java),
                 flags(mutable = true),
             )
+            // Roue crantée de l'en-tête : réglage du widget (ordre, taille) dans le store.
+            val openSettings = PendingIntent.getActivity(
+                context, 2,
+                Intent(context, MainActivity::class.java)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    .putExtra(MainActivity.EXTRA_OPEN_APP, HomeWidget.SETTINGS_TOKEN),
+                flags(mutable = false),
+            )
             for (id in ids) {
-                val views = RemoteViews(context.packageName, HomeWidget.widgetLayout(context))
+                val views = RemoteViews(context.packageName, R.layout.widget_apps)
+                // Largeur des colonnes suivant la taille des icônes choisie dans le store.
+                views.setInt(
+                    R.id.widget_grid, "setColumnWidth",
+                    HomeWidget.dpToPx(context, HomeWidget.iconDp(context) + 20f),
+                )
                 val adapter = Intent(context, AppsWidgetService::class.java).apply {
                     putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, id)
                     // Intent unique par widget ET par version des données : à chaque envoi
@@ -58,6 +71,7 @@ class AppsWidgetProvider : AppWidgetProvider() {
                 views.setEmptyView(R.id.widget_grid, R.id.widget_empty)
                 views.setPendingIntentTemplate(R.id.widget_grid, itemTemplate)
                 views.setOnClickPendingIntent(R.id.widget_header, openStore)
+                views.setOnClickPendingIntent(R.id.widget_settings, openSettings)
                 views.setOnClickPendingIntent(R.id.widget_empty, openStore)
                 manager.updateAppWidget(id, views)
             }

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lieluapp/ui/pages/detail_page.dart';
+import 'package:lieluapp/ui/pages/widget_order_page.dart';
 import 'package:lieluapp/state/providers.dart';
 import 'package:lieluapp/ui/pages/apps_page.dart';
 import 'package:lieluapp/ui/pages/downloads_page.dart';
@@ -38,10 +39,15 @@ class _ShellState extends ConsumerState<Shell> with WidgetsBindingObserver {
     });
   }
 
+  /// Jeton envoyé par la roue crantée du widget (ou « Paramètres du widget » d'Android).
+  static const widgetSettingsToken = '::widget-settings';
+
   void _openFromWidget(String appId) {
     if (!mounted) return;
-    Navigator.of(context).push(
-        MaterialPageRoute<void>(builder: (_) => AppDetailPage(appId: appId)));
+    Navigator.of(context).push(MaterialPageRoute<void>(
+        builder: (_) => appId == widgetSettingsToken
+            ? const WidgetOrderPage()
+            : AppDetailPage(appId: appId)));
   }
 
   @override

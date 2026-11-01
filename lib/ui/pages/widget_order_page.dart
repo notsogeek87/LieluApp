@@ -43,18 +43,7 @@ class WidgetOrderPage extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Taille des icônes', style: theme.textTheme.titleSmall),
-                  const SizedBox(height: 8),
-                  SegmentedButton<WidgetIconSize>(
-                    showSelectedIcon: false,
-                    segments: [
-                      for (final s in WidgetIconSize.values)
-                        ButtonSegment(value: s, label: Text(s.label)),
-                    ],
-                    selected: {size},
-                    onSelectionChanged: (s) =>
-                        ref.read(widgetIconSizeProvider.notifier).set(s.first),
-                  ),
+                  _IconSizeSetting(size: size, preview: apps.take(4).toList()),
                   const SizedBox(height: 20),
                   Text('Ordre des applications', style: theme.textTheme.titleSmall),
                   const SizedBox(height: 8),
@@ -96,6 +85,95 @@ class WidgetOrderPage extends ConsumerWidget {
               );
             },
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Taille des icônes du widget : curseur de très petites à très grandes, avec aperçu.
+class _IconSizeSetting extends ConsumerWidget {
+  final int size;
+  final List<AppView> preview;
+  const _IconSizeSetting({required this.size, required this.preview});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final notifier = ref.read(widgetIconSizeProvider.notifier);
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(child: Text('Taille des icônes', style: theme.textTheme.titleSmall)),
+                Text('$size dp', style: theme.textTheme.labelLarge),
+              ],
+            ),
+            Row(
+              children: [
+                IconButton(
+                  tooltip: 'Réduire',
+                  icon: const Icon(Icons.remove_circle_outline),
+                  onPressed: size > widgetIconMinDp
+                      ? () => notifier.set(size - widgetIconStepDp * 2)
+                      : null,
+                ),
+                Expanded(
+                  child: Slider(
+                    min: widgetIconMinDp.toDouble(),
+                    max: widgetIconMaxDp.toDouble(),
+                    divisions: (widgetIconMaxDp - widgetIconMinDp) ~/ widgetIconStepDp,
+                    value: size.toDouble(),
+                    label: '$size dp',
+                    onChanged: (v) => notifier.set(v.round()),
+                  ),
+                ),
+                IconButton(
+                  tooltip: 'Agrandir',
+                  icon: const Icon(Icons.add_circle_outline),
+                  onPressed: size < widgetIconMaxDp
+                      ? () => notifier.set(size + widgetIconStepDp * 2)
+                      : null,
+                ),
+              ],
+            ),
+            // Aperçu à la taille réelle (1 dp Android = 1 unité Flutter).
+            SizedBox(
+              height: widgetIconMaxDp + 24,
+              child: Center(
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      for (final v in preview)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 6),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              AppIcon(v.entry, size: size.toDouble()),
+                              const SizedBox(height: 4),
+                              SizedBox(
+                                width: size + 12,
+                                child: Text(v.entry.name,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    textAlign: TextAlign.center,
+                                    style: theme.textTheme.labelSmall),
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

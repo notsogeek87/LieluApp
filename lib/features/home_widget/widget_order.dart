@@ -62,41 +62,48 @@ final widgetOrderProvider =
 final widgetAppsProvider = Provider<List<AppView>>((ref) => applyOrder(
     ref.watch(appViewsProvider), ref.watch(widgetOrderProvider), (v) => v.entry.id));
 
-/// Taille des icônes dans le widget d'écran d'accueil.
-enum WidgetIconSize {
-  small('Petites'),
-  medium('Moyennes'),
-  large('Grandes');
+/// Taille des icônes du widget d'écran d'accueil, en dp : de très petites à très grandes.
+const widgetIconMinDp = 32;
+const widgetIconMaxDp = 128;
+const widgetIconStepDp = 4;
+const widgetIconDefaultDp = 56;
 
-  final String label;
-  const WidgetIconSize(this.label);
-}
-
-final class WidgetIconSizeNotifier extends Notifier<WidgetIconSize> {
-  static const _key = 'widget.iconSize';
+final class WidgetIconSizeNotifier extends Notifier<int> {
+  static const _key = 'widget.iconDp';
+  static const _legacyKey = 'widget.iconSize'; // ancien réglage petites/moyennes/grandes
 
   @override
-  WidgetIconSize build() {
-    final saved = ref.read(sharedPrefsProvider).getString(_key);
-    return WidgetIconSize.values.firstWhere((s) => s.name == saved,
-        orElse: () => WidgetIconSize.medium);
+  int build() {
+    final prefs = ref.read(sharedPrefsProvider);
+    final saved = prefs.getInt(_key);
+    if (saved != null) return clamp(saved);
+    return switch (prefs.getString(_legacyKey)) {
+      'small' => 40,
+      'large' => 80,
+      _ => widgetIconDefaultDp,
+    };
   }
 
-  Future<void> set(WidgetIconSize size) async {
-    state = size;
-    await ref.read(sharedPrefsProvider).setString(_key, size.name);
+  static int clamp(int dp) {
+    final stepped = (dp / widgetIconStepDp).round() * widgetIconStepDp;
+    return stepped.clamp(widgetIconMinDp, widgetIconMaxDp);
+  }
+
+  Future<void> set(int dp) async {
+    state = clamp(dp);
+    await ref.read(sharedPrefsProvider).setInt(_key, state);
   }
 }
 
 final widgetIconSizeProvider =
-    NotifierProvider<WidgetIconSizeNotifier, WidgetIconSize>(WidgetIconSizeNotifier.new);
+    NotifierProvider<WidgetIconSizeNotifier, int>(WidgetIconSizeNotifier.new);
 
-/// Données transmises au widget Android (JSON) : taille des icônes et apps dans
+/// Données transmises au widget Android (JSON) : taille des icônes (dp) et apps dans
 /// l'ordre choisi. L'état « installée » est relu par le widget lui-même, pour
 /// rester juste même si le store n'est pas ouvert.
-String widgetPayload(List<AppView> apps, [WidgetIconSize size = WidgetIconSize.medium]) =>
+String widgetPayload(List<AppView> apps, [int iconDp = widgetIconDefaultDp]) =>
     jsonEncode({
-      'size': size.name,
+      'iconDp': iconDp,
       'items': [
         for (final v in apps)
           {

@@ -24,8 +24,8 @@ void main() {
   test('données du widget : toutes les apps, paquet Android ou adresse web', () {
     final catalog = parseCatalog(File('catalog/apps.json').readAsStringSync());
     final views = [for (final e in catalog.entries) AppView(e)];
-    final payload = jsonDecode(widgetPayload(views, WidgetIconSize.large)) as Map<String, dynamic>;
-    expect(payload['size'], 'large');
+    final payload = jsonDecode(widgetPayload(views, 96)) as Map<String, dynamic>;
+    expect(payload['iconDp'], 96);
     final items = (payload['items'] as List).cast<Map<String, dynamic>>();
     expect(items.length, catalog.entries.length);
     final web = items.firstWhere((i) => i['id'] == 'kigardeki');
@@ -34,5 +34,12 @@ void main() {
     final android = items.firstWhere((i) => i['id'] == 'swipernews');
     expect(android['packageName'], 'eu.lielu.news');
     expect(android.containsKey('url'), isFalse);
+  });
+
+  test('taille des icônes : bornée et arrondie au pas', () {
+    expect(WidgetIconSizeNotifier.clamp(10), widgetIconMinDp);
+    expect(WidgetIconSizeNotifier.clamp(500), widgetIconMaxDp);
+    expect(WidgetIconSizeNotifier.clamp(57), 56);
+    expect(WidgetIconSizeNotifier.clamp(59), 60);
   });
 }

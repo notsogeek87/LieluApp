@@ -12,6 +12,8 @@ import android.graphics.Paint
 import android.graphics.RectF
 import android.graphics.Shader
 import android.graphics.Typeface
+import android.os.Build
+import android.util.TypedValue
 import android.widget.RemoteViews
 import android.widget.RemoteViewsService
 
@@ -23,7 +25,8 @@ class AppsWidgetService : RemoteViewsService() {
 
 class AppsWidgetFactory(private val context: Context) : RemoteViewsService.RemoteViewsFactory {
     private var apps: List<WidgetApp> = emptyList()
-    private var itemLayout: Int = R.layout.widget_app_item
+    private var iconDp: Int = HomeWidget.DEFAULT_ICON_DP
+    private var iconPx: Int = SIZE
     private val icons = HashMap<String, Bitmap>()
 
     override fun onCreate() {}
@@ -31,7 +34,9 @@ class AppsWidgetFactory(private val context: Context) : RemoteViewsService.Remot
     // Appelé hors du thread UI : on peut y lire les préférences et décoder les icônes.
     override fun onDataSetChanged() {
         apps = HomeWidget.load(context)
-        itemLayout = HomeWidget.itemLayout(context)
+        iconDp = HomeWidget.iconDp(context)
+        // Bitmap à la taille affichée (plafonnée pour rester légère à transmettre).
+        iconPx = HomeWidget.dpToPx(context, iconDp.toFloat()).coerceIn(48, MAX_ICON_PX)
         icons.clear()
     }
 
@@ -42,13 +47,20 @@ class AppsWidgetFactory(private val context: Context) : RemoteViewsService.Remot
     override fun getCount(): Int = apps.size
 
     override fun getViewAt(position: Int): RemoteViews {
-        val views = RemoteViews(context.packageName, itemLayout)
+        val views = RemoteViews(context.packageName, R.layout.widget_app_item)
         val app = apps.getOrNull(position) ?: return views
         val installed = app.packageName != null &&
             context.packageManager.getLaunchIntentForPackage(app.packageName) != null
         val active = installed || app.url != null
         views.setTextViewText(R.id.app_name, app.name)
         views.setImageViewBitmap(R.id.app_icon, icon(app))
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            views.setViewLayoutWidth(R.id.app_icon, iconDp.toFloat(), TypedValue.COMPLEX_UNIT_DIP)
+            views.setViewLayoutHeight(R.id.app_icon, iconDp.toFloat(), TypedValue.COMPLEX_UNIT_DIP)
+        }
+        views.setTextViewTextSize(
+            R.id.app_name, TypedValue.COMPLEX_UNIT_SP, (iconDp * 0.2f).coerceIn(10f, 16f),
+        )
         // Apps non installées en retrait : un appui ouvre leur fiche dans le store.
         views.setInt(R.id.app_icon, "setImageAlpha", if (active) 255 else 110)
         views.setTextColor(R.id.app_name, if (active) 0xF2FFFFFF.toInt() else 0x8CFFFFFF.toInt())
@@ -67,7 +79,7 @@ class AppsWidgetFactory(private val context: Context) : RemoteViewsService.Remot
     }
 
     override fun getLoadingView(): RemoteViews? = null
-    override fun getViewTypeCount(): Int = 3 // petit, moyen, grand
+    override fun getViewTypeCount(): Int = 1
     override fun getItemId(position: Int): Long = position.toLong()
     override fun hasStableIds(): Boolean = false
 
@@ -91,8 +103,8 @@ class AppsWidgetFactory(private val context: Context) : RemoteViewsService.Remot
         if (pkg == null) return null
         return try {
             val drawable = context.packageManager.getApplicationIcon(pkg)
-            val bmp = Bitmap.createBitmap(SIZE, SIZE, Bitmap.Config.ARGB_8888)
-            drawable.setBounds(0, 0, SIZE, SIZE)
+            val bmp = Bitmap.createBitmap(iconPx, iconPx, Bitmap.Config.ARGB_8888)
+            drawable.setBounds(0, 0, iconPx, iconPx)
             drawable.draw(Canvas(bmp))
             bmp
         } catch (_: Exception) {
@@ -102,22 +114,22 @@ class AppsWidgetFactory(private val context: Context) : RemoteViewsService.Remot
 
     /** Coins arrondis comme dans le store (rayon de 26 %). */
     private fun rounded(src: Bitmap): Bitmap {
-        val scaled = Bitmap.createScaledBitmap(src, SIZE, SIZE, true)
-        val out = Bitmap.createBitmap(SIZE, SIZE, Bitmap.Config.ARGB_8888)
+        val scaled = Bitmap.createScaledBitmap(src, iconPx, iconPx, true)
+        val out = Bitmap.createBitmap(iconPx, iconPx, Bitmap.Config.ARGB_8888)
         val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             shader = BitmapShader(scaled, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
         }
-        val r = SIZE * 0.26f
-        Canvas(out).drawRoundRect(RectF(0f, 0f, SIZE.toFloat(), SIZE.toFloat()), r, r, paint)
+        val r = iconPx * 0.26f
+        Canvas(out).drawRoundRect(RectF(0f, 0f, iconPx.toFloat(), iconPx.toFloat()), r, r, paint)
         return out
     }
 
     /** Pastille colorée avec l'initiale, couleurs dérivées de l'identifiant (comme le store). */
     private fun letterIcon(app: WidgetApp): Bitmap {
         val (c1, c2) = PALETTES[app.id.sumOf { it.code } % PALETTES.size]
-        val out = Bitmap.createBitmap(SIZE, SIZE, Bitmap.Config.ARGB_8888)
+        val out = Bitmap.createBitmap(iconPx, iconPx, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(out)
-        val size = SIZE.toFloat()
+        val size = iconPx.toFloat()
         val bg = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             shader = LinearGradient(0f, 0f, size, size, c1, c2, Shader.TileMode.CLAMP)
         }
@@ -136,6 +148,7 @@ class AppsWidgetFactory(private val context: Context) : RemoteViewsService.Remot
 
     private companion object {
         const val SIZE = 128
+        const val MAX_ICON_PX = 320
         val PALETTES = listOf(
             0xFF7B61FF.toInt() to 0xFF4F8CFF.toInt(),
             0xFFFF8A5B.toInt() to 0xFFFFC857.toInt(),

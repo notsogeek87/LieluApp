@@ -23,7 +23,7 @@ data class WidgetApp(
 object HomeWidget {
     private const val PREFS = "lielu_home_widget"
     private const val KEY_ITEMS = "items"
-    private const val KEY_SIZE = "size"
+    private const val KEY_ICON_DP = "iconDp"
     private const val KEY_VERSION = "version"
 
     /** Fiche demandée depuis le widget avant que Flutter ne soit prêt (démarrage à froid). */
@@ -36,51 +36,50 @@ object HomeWidget {
 
     fun takePendingLaunch(): String? = pendingLaunch.also { pendingLaunch = null }
 
+    /** Jeton transmis au store pour ouvrir le réglage du widget. */
+    const val SETTINGS_TOKEN = "::widget-settings"
+
+    const val DEFAULT_ICON_DP = 56
+
     /**
-     * Enregistre les données envoyées par le store : `{"size": "...", "items": [...]}`
+     * Enregistre les données envoyées par le store : `{"iconDp": 56, "items": [...]}`
      * (un simple tableau reste accepté). Chaque envoi incrémente une version qui
      * force le widget à relire la liste, même si le lanceur garde l'ancienne en cache.
      */
     fun save(context: Context, payload: String) {
         val trimmed = payload.trim()
         val items: JSONArray
-        var size = "medium"
+        var iconDp = DEFAULT_ICON_DP
         if (trimmed.startsWith("{")) {
             val o = JSONObject(trimmed)
             items = o.optJSONArray("items") ?: JSONArray()
-            size = o.optString("size", "medium")
+            iconDp = when {
+                o.has("iconDp") -> o.optInt("iconDp", DEFAULT_ICON_DP)
+                o.optString("size") == "small" -> 40
+                o.optString("size") == "large" -> 80
+                else -> DEFAULT_ICON_DP
+            }
         } else {
             items = JSONArray(trimmed)
         }
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         prefs.edit()
             .putString(KEY_ITEMS, items.toString())
-            .putString(KEY_SIZE, size)
+            .putInt(KEY_ICON_DP, iconDp.coerceIn(24, 160))
             .putLong(KEY_VERSION, prefs.getLong(KEY_VERSION, 0) + 1)
             // commit (synchrone) : le widget relit ces valeurs juste après.
             .commit()
     }
 
-    fun size(context: Context): String =
-        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY_SIZE, "medium")
-            ?: "medium"
+    /** Taille des icônes choisie dans le store, en dp. */
+    fun iconDp(context: Context): Int =
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getInt(KEY_ICON_DP, DEFAULT_ICON_DP)
 
     fun version(context: Context): Long =
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getLong(KEY_VERSION, 0)
 
-    /** Gabarit du widget selon la taille choisie. */
-    fun widgetLayout(context: Context): Int = when (size(context)) {
-        "small" -> R.layout.widget_apps_small
-        "large" -> R.layout.widget_apps_large
-        else -> R.layout.widget_apps
-    }
-
-    /** Gabarit d'une case selon la taille choisie. */
-    fun itemLayout(context: Context): Int = when (size(context)) {
-        "small" -> R.layout.widget_app_item_small
-        "large" -> R.layout.widget_app_item_large
-        else -> R.layout.widget_app_item
-    }
+    fun dpToPx(context: Context, dp: Float): Int =
+        (dp * context.resources.displayMetrics.density + 0.5f).toInt()
 
     fun load(context: Context): List<WidgetApp> {
         val raw = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)

@@ -4,4 +4,5 @@
     <string name="widget_label">Applications Lielu</string>
     <string name="widget_description">Toutes les applications Lielu, dans l\'ordre que vous choisissez dans le store.</string>
     <string name="widget_empty">Ouvrez Lielu Store pour afficher vos applications.</string>
+    <string name="widget_settings">Régler le widget (ordre et taille des icônes)</string>
 </resources>
