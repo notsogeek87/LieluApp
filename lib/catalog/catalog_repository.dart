@@ -46,9 +46,10 @@ final class CatalogRepository {
         // apps ajoutées depuis : on complète avec les entrées embarquées
         // absentes du cache (par id ou par packageName).
         final ids = parsed.entries.map((e) => e.id).toSet();
-        final packages = parsed.entries.map((e) => e.packageName).toSet();
-        final missing = bundled.entries
-            .where((e) => !ids.contains(e.id) && !packages.contains(e.packageName));
+        final packages =
+            parsed.entries.where((e) => !e.isWeb).map((e) => e.packageName).toSet();
+        final missing = bundled.entries.where((e) =>
+            !ids.contains(e.id) && (e.isWeb || !packages.contains(e.packageName)));
         return CatalogParseResult(
             [...parsed.entries, ...missing], parsed.issues, parsed.updatedAt);
       } on FormatException {

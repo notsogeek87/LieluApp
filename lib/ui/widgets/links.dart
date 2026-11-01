@@ -14,3 +14,17 @@ Future<void> openUrl(BuildContext context, String url) async {
     }
   }
 }
+
+/// Ouvre une application web du catalogue dans le navigateur (HTTPS uniquement,
+/// l'adresse est validée à la lecture du catalogue).
+Future<void> openWebApp(BuildContext context, String url) async {
+  final uri = Uri.tryParse(url);
+  if (uri == null ||
+      uri.scheme != 'https' ||
+      !await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Impossible d\'ouvrir l\'application web.')));
+    }
+  }
+}

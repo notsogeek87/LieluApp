@@ -124,7 +124,11 @@ final class ReleasesNotifier extends AsyncNotifier<ReleasesState> {
 
   @override
   Future<ReleasesState> build() async {
-    final entries = ref.watch(catalogProvider.select((c) => c.value?.entries)) ?? const [];
+    // Les applications web n'ont ni release ni APK.
+    final entries = [
+      for (final e in ref.watch(catalogProvider.select((c) => c.value?.entries)) ?? const <CatalogEntry>[])
+        if (!e.isWeb) e,
+    ];
     final abis = (await ref.watch(deviceInfoProvider.future)).abis;
     final repo = ref.read(releaseRepositoryProvider);
     final prefs = ref.read(sharedPrefsProvider);
@@ -145,7 +149,10 @@ final class ReleasesNotifier extends AsyncNotifier<ReleasesState> {
   Future<void> refresh() async {
     final current = state.value;
     if (current == null || current.refreshing) return;
-    final entries = ref.read(catalogProvider).value?.entries ?? const <CatalogEntry>[];
+    final entries = [
+      for (final e in ref.read(catalogProvider).value?.entries ?? const <CatalogEntry>[])
+        if (!e.isWeb) e,
+    ];
     final abis = (await ref.read(deviceInfoProvider.future)).abis;
     final repo = ref.read(releaseRepositoryProvider);
     state = AsyncData(current.copyWith(refreshing: true));
@@ -185,7 +192,7 @@ final class InstalledNotifier extends AsyncNotifier<Map<String, InstalledInfo>> 
     try {
       return await ref
           .read(platformProvider)
-          .installed([for (final e in entries) e.packageName]);
+          .installed([for (final e in entries) if (!e.isWeb) e.packageName]);
     } on Object {
       return const {};
     }
@@ -234,7 +241,7 @@ final appViewsProvider = Provider<List<AppView>>((ref) {
   return [
     for (final e in entries)
       AppView(e,
-          installed: installed[e.packageName],
+          installed: e.isWeb ? null : installed[e.packageName],
           result: releases[e.id],
           trackedTag: tags[e.packageName]),
   ];

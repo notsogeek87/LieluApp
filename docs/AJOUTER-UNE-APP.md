@@ -56,11 +56,35 @@ Le store récupère le fichier depuis `https://raw.githubusercontent.com/notsoge
 > ⚠️ `raw.githubusercontent.com` ne sert que les dépôts **publics**. Tant que `LieluApp` est privé, le
 > store utilise la copie du catalogue embarquée dans l'APK (le fichier ci-dessus au moment du build).
 
+## Ajouter une application web
+
+Une app web (site, PWA, addon) n'a ni APK ni release : le store affiche sa fiche et un bouton
+**Ouvrir** qui lance le navigateur. Aucune nouvelle version du store n'est nécessaire non plus.
+
+```json
+{
+  "id": "mon-site",
+  "type": "web",
+  "name": "Mon Site",
+  "url": "https://monsite.lielu.eu",
+  "repo": "notsogeek87/mon-site",
+  "category": "Productivité",
+  "shortDescription": "Une phrase pour la liste.",
+  "description": "Description détaillée pour la fiche."
+}
+```
+
+`url` est obligatoire et en HTTPS ; `packageName`, `release`, `minSdk` et `signingCertSha256` ne
+s'appliquent pas ; `repo` est facultatif (bouton « Dépôt public » s'il est renseigné). L'icône se
+place comme pour les apps Android : `catalog/icons/<id>.png` (embarquée à la compilation) ou `iconUrl`.
+
 ## Référence des champs
 
 | Champ | Obligatoire | Description |
 | --- | --- | --- |
 | `id` | oui | identifiant unique : minuscules, chiffres, tirets |
+| `type` | non | `android` (défaut) ou `web` (voir ci-dessus) |
+| `url` | web | adresse HTTPS d'une application web |
 | `name` | oui | nom public |
 | `packageName` | oui | `applicationId` Android **réel** (il est vérifié dans l'APK avant installation) |
 | `repo` | oui | `proprietaire/depot` GitHub public |

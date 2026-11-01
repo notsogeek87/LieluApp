@@ -22,7 +22,10 @@ void main() {
     expect(r.issues, isEmpty);
     expect(r.entries.length, greaterThanOrEqualTo(5));
     expect(r.entries.map((e) => e.id).toSet().length, r.entries.length);
-    expect(r.entries.map((e) => e.packageName).toSet().length, r.entries.length);
+    final android = r.entries.where((e) => !e.isWeb);
+    expect(android.map((e) => e.packageName).toSet().length, android.length);
+    expect(r.entries.where((e) => e.isWeb).map((e) => e.id),
+        containsAll(['kigardeki', 'lielu-lists', 'lieluwish', 'lielutodo-web']));
     // Entrée masquée (listed:false) non exposée.
     expect(r.entries.any((e) => e.id == 'ninjago-wishlist'), isFalse);
   });
@@ -71,6 +74,28 @@ void main() {
     final e = parseCatalog(doc([app({'signingCertSha256': good})])).entries.single;
     expect(e.signingCertSha256, 'aa' * 32);
     expect(parseCatalog(doc([app({'signingCertSha256': 'abc'})])).entries, isEmpty);
+  });
+
+  test('application web : url HTTPS obligatoire, sans packageName ni repo', () {
+    Map<String, Object?> web([Map<String, Object?> over = const {}]) => {
+          'id': 'site',
+          'type': 'web',
+          'name': 'Site',
+          'url': 'https://site.lielu.eu',
+          'shortDescription': 'Une app web',
+          ...over,
+        };
+    final r = parseCatalog(doc([web(), web({'id': 'autre', 'url': 'https://autre.lielu.eu'}), app()]));
+    expect(r.issues, isEmpty);
+    expect(r.entries.length, 3);
+    final e = r.entries.first;
+    expect(e.isWeb, isTrue);
+    expect(e.webUrl, 'https://site.lielu.eu');
+    expect(e.hasRepo, isFalse);
+    expect(parseCatalog(doc([web({'url': 'http://site.lielu.eu'})])).entries, isEmpty);
+    expect(parseCatalog(doc([web({'url': null})])).entries, isEmpty);
+    expect(parseCatalog(doc([web({'repo': 'x'})])).entries, isEmpty);
+    expect(parseCatalog(doc([app({'type': 'ios'})])).entries, isEmpty);
   });
 
   test('document inutilisable ou schéma trop récent → FormatException', () {

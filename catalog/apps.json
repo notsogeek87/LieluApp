@@ -241,6 +241,48 @@
         "tagPattern": "^v(\\d+(?:\\.\\d+)*)$",
         "apkPattern": "^OfflineVoiceInput-.*\\.apk$"
       }
+    },
+    {
+      "id": "kigardeki",
+      "type": "web",
+      "name": "Kigardeki",
+      "url": "https://kigardeki.lielu.eu",
+      "repo": "notsogeek87/kigardeki",
+      "category": "Productivité",
+      "shortDescription": "Planning familial de garde des enfants : les parents organisent, les proches consultent.",
+      "description": "Application web (PWA, installable depuis le navigateur) pour organiser la garde des enfants : écoles, crèches, gardes et personnes de confiance. Les parents créent et modifient le planning ; grands-parents et proches le consultent uniquement, règle appliquée côté serveur. Compte requis, isolation stricte par famille et données personnelles chiffrées.",
+      "maintenance": "active"
+    },
+    {
+      "id": "lielu-lists",
+      "type": "web",
+      "name": "Lielu Lists",
+      "url": "https://lists.lielu.eu",
+      "repo": "notsogeek87/lieluSync",
+      "category": "Divertissement",
+      "shortDescription": "Vos watchlists et listes TMDB en catalogues Stremio, synchronisées toutes les 15 minutes.",
+      "description": "Addon Stremio : connectez votre compte TMDB, choisissez les listes à exposer (watchlists films et séries, listes personnelles) et installez votre URL personnelle dans Stremio. Ajouts et suppressions synchronisés toutes les 15 minutes, catalogues en français, films et séries séparés. Le jeton TMDB est chiffré et révocable, jamais dans l'URL.",
+      "maintenance": "active"
+    },
+    {
+      "id": "lieluwish",
+      "type": "web",
+      "name": "Lieluwish",
+      "url": "https://wish.lielu.eu",
+      "category": "Divertissement",
+      "shortDescription": "Les listes de cadeaux des enfants, à partager avec les grands-parents.",
+      "description": "Application web pour tenir les listes d'envies de cadeaux des enfants et les partager avec la famille, pour savoir quoi offrir. Connexion par e-mail et mot de passe.",
+      "maintenance": "active"
+    },
+    {
+      "id": "lielutodo-web",
+      "type": "web",
+      "name": "LieluTodo Web",
+      "url": "https://todo.lielu.eu",
+      "category": "Productivité",
+      "shortDescription": "Client web de vos tâches Vikunja, façon Todoist, avec ajout rapide en langage naturel.",
+      "description": "Application web (PWA) pour gérer vos tâches Vikunja (il faut une instance Vikunja) : ajout rapide en langage naturel, fonctionnement hors ligne. À ne pas confondre avec l'app Android LieluTodo, qui garde ses tâches sur le téléphone.",
+      "maintenance": "active"
     }
   ]
 }

@@ -29,11 +29,12 @@ class AppDetailPage extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         actions: [
-          IconButton(
-            tooltip: 'Dépôt public',
-            icon: const Icon(Icons.code),
-            onPressed: () => openUrl(context, entry.repoUrl),
-          ),
+          if (entry.hasRepo)
+            IconButton(
+              tooltip: 'Dépôt public',
+              icon: const Icon(Icons.code),
+              onPressed: () => openUrl(context, entry.repoUrl),
+            ),
         ],
       ),
       body: DecoratedBox(
@@ -150,7 +151,9 @@ class AppDetailPage extends ConsumerWidget {
     );
   }
 
-  static String _statusLine(AppView v) => switch (v.status) {
+  static String _statusLine(AppView v) => v.entry.isWeb
+      ? 'Application web · s\'ouvre dans le navigateur'
+      : switch (v.status) {
         AppStatus.notInstalled => 'Non installée',
         AppStatus.upToDate => 'Installée · à jour',
         AppStatus.updateAvailable => 'Mise à jour disponible',
@@ -325,7 +328,14 @@ class _InfoCard extends StatelessWidget {
     final release = view.release;
     final apk = release?.apk;
     final entry = view.entry;
-    final rows = <(String, String)>[
+    final rows = entry.isWeb
+        ? <(String, String)>[
+            ('Type', 'Application web'),
+            ('Adresse', Uri.parse(entry.webUrl!).host),
+            ('Installation', 'Aucune : elle s\'ouvre dans le navigateur'),
+            if (entry.hasRepo) ('Dépôt public', 'github.com/${entry.repo}'),
+          ]
+        : <(String, String)>[
       ('Version installée', view.installed == null ? 'Non installée' : view.installed!.versionName),
       if (view.installed != null) ('Installée via', view.installed!.installerLabel),
       ('Dernière version', release == null ? '—' : '${release.version}'),

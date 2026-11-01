@@ -73,10 +73,16 @@ final class ReleaseRules {
 final class CatalogEntry {
   final String id;
   final String name;
+
+  /// `applicationId` Android ; vide pour une application web.
   final String packageName;
 
-  /// `owner/name` d'un dépôt GitHub public.
+  /// `owner/name` d'un dépôt GitHub public ; facultatif (vide) pour une application web.
   final String repo;
+
+  /// Adresse HTTPS d'une application web (`"type": "web"`) : elle s'ouvre dans
+  /// le navigateur, sans APK, sans release ni installation.
+  final String? webUrl;
   final String category;
   final String shortDescription;
   final String description;
@@ -109,8 +115,11 @@ final class CatalogEntry {
     this.featured = false,
     this.minSdk,
     this.signingCertSha256,
+    this.webUrl,
   });
 
+  bool get isWeb => webUrl != null;
+  bool get hasRepo => repo.isNotEmpty;
   String get repoUrl => 'https://github.com/$repo';
   String get releasesUrl => '$repoUrl/releases';
 }
@@ -165,7 +174,7 @@ CatalogParseResult parseCatalog(String source) {
       if (!seenIds.add(entry.id)) {
         throw FormatException('id en double : ${entry.id}');
       }
-      if (!seenPackages.add(entry.packageName)) {
+      if (!entry.isWeb && !seenPackages.add(entry.packageName)) {
         throw FormatException('packageName en double : ${entry.packageName}');
       }
       entries.add(entry);
@@ -188,6 +197,11 @@ CatalogEntry _parseEntry(Map<String, dynamic> j) {
 
   final id = req('id');
   if (!_idRe.hasMatch(id)) throw FormatException('id invalide : $id');
+  final type = j['type'] ?? 'android';
+  if (type != 'android' && type != 'web') {
+    throw FormatException('type inconnu : $type (android ou web)');
+  }
+  if (type == 'web') return _parseWebEntry(j, id, req);
   final packageName = req('packageName');
   if (!_packageRe.hasMatch(packageName)) {
     throw FormatException('packageName invalide : $packageName');
@@ -235,5 +249,43 @@ CatalogEntry _parseEntry(Map<String, dynamic> j) {
     minSdk: j['minSdk'] is int ? j['minSdk'] as int : null,
     signingCertSha256: (cert as String?)?.replaceAll(':', '').toLowerCase(),
     release: rules,
+  );
+}
+
+/// Application web : nom, description et adresse HTTPS ; le dépôt est facultatif.
+CatalogEntry _parseWebEntry(
+    Map<String, dynamic> j, String id, String Function(String) req) {
+  final url = Uri.tryParse(req('url'));
+  if (url == null || url.scheme != 'https' || url.host.isEmpty) {
+    throw const FormatException('url d\'application web invalide (HTTPS obligatoire)');
+  }
+  final repo = (j['repo'] as String?)?.trim() ?? '';
+  if (repo.isNotEmpty && !_repoRe.hasMatch(repo)) {
+    throw FormatException('repo invalide : $repo');
+  }
+  final icon = j['iconUrl'];
+  String? iconUrl;
+  if (icon != null) {
+    try {
+      iconUrl = UrlPolicy.github.require('$icon').toString();
+    } on UrlRejected catch (e) {
+      throw FormatException(e.toString());
+    }
+  }
+  return CatalogEntry(
+    id: id,
+    name: req('name'),
+    packageName: '',
+    repo: repo,
+    category: (j['category'] as String?)?.trim().isNotEmpty == true
+        ? (j['category'] as String).trim()
+        : 'Autres',
+    shortDescription: req('shortDescription'),
+    description: (j['description'] as String?)?.trim() ?? req('shortDescription'),
+    iconUrl: iconUrl,
+    maintenance: Maintenance.parse(j['maintenance']),
+    featured: j['featured'] == true,
+    release: ReleaseRules(tagPattern: ReleaseRules.defaultTagPattern),
+    webUrl: url.toString(),
   );
 }

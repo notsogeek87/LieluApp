@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lieluapp/install/install_models.dart';
 import 'package:lieluapp/state/app_view.dart';
 import 'package:lieluapp/state/providers.dart';
+import 'package:lieluapp/ui/widgets/links.dart';
 
 Future<void> openApp(BuildContext context, WidgetRef ref, AppView view) async {
   final ok = await ref.read(platformProvider).launch(view.entry.packageName);
@@ -20,6 +21,14 @@ class AppActionButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final webUrl = view.entry.webUrl;
+    if (webUrl != null) {
+      return FilledButton.tonalIcon(
+        onPressed: () => openWebApp(context, webUrl),
+        icon: const Icon(Icons.open_in_new, size: 18),
+        label: const Text('Ouvrir'),
+      );
+    }
     final install = ref.watch(installControllerProvider)[view.entry.id];
     final controller = ref.read(installControllerProvider.notifier);
     final scheme = Theme.of(context).colorScheme;

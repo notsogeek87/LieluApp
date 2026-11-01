@@ -94,6 +94,9 @@ class _VersionLabel extends StatelessWidget {
         .textTheme
         .labelSmall
         ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant);
+    if (view.entry.isWeb) {
+      return Text('Application web · ${Uri.parse(view.entry.webUrl!).host}', style: style);
+    }
     final latest = view.release?.version;
     final inst = view.installed;
     final (String text, Color? color) = switch (view.status) {
