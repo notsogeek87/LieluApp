@@ -24,8 +24,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          APKSIGNER=$(ls -d "${ANDROID_SDK_ROOT:-$ANDROID_HOME}"/build-tools/*/apksigner | sort -V | tail -1)
-          python3 tool/catalog_pins.py catalog/apps.json "$APKSIGNER" "$RUNNER_TEMP/report.md"
+          python3 tool/catalog_pins.py catalog/apps.json "$RUNNER_TEMP/report.md"
           cat "$RUNNER_TEMP/report.md" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Pousser le catalogue épinglé sur la branche catalog-pins

@@ -17,7 +17,8 @@
       "release": {
         "tagPattern": "^(?:android-)?v(\\d+(?:\\.\\d+)*)$",
         "apkPattern": "^swipernews-.*\\.apk$"
-      }
+      },
+      "signingCertSha256": "cc849a79fc39de5f8b4af5fcda1dbdb4230ad554aef85b484e5c7fd49caa6238"
     },
     {
       "id": "backlog",
@@ -34,7 +35,8 @@
       "release": {
         "tagPattern": "^v(\\d+(?:\\.\\d+)*)$",
         "apkPattern": "^Backlog-.*\\.apk$"
-      }
+      },
+      "signingCertSha256": "74363e4e134d55883823caaeb29e0925091369dc66ee23933e842254b08ced65"
     },
     {
       "id": "vizuzik",
@@ -145,7 +147,8 @@
       "release": {
         "tagPattern": "^v(\\d+(?:\\.\\d+)*)$",
         "apkPattern": "^LieluKeep-.*\\.apk$"
-      }
+      },
+      "signingCertSha256": "62ae980b70952f4d4834a26260d5c8fdf9c97f5e3425c2250df58b55a8c81e82"
     },
     {
       "id": "trusti",
@@ -165,7 +168,7 @@
     {
       "id": "lielufind",
       "name": "LieluFind",
-      "packageName": "com.sunstep.travel.foss",
+      "packageName": "eu.lielu.find.foss",
       "repo": "notsogeek87/LieluFind",
       "category": "Outils",
       "shortDescription": "Client Android pour Dawarich : votre historique de positions auto-hébergé.",
@@ -176,7 +179,8 @@
         "tagPattern": "^v(\\d+(?:\\.\\d+)*)$",
         "apkPattern": "^LieluFind-.*\\.apk$",
         "updateDetection": "installedTag"
-      }
+      },
+      "signingCertSha256": "63a74ce17dbf839bcf85c8a3cca94faafff9c851bfcda5ec7554122e6040106a"
     },
     {
       "id": "lieluphoto",
@@ -193,7 +197,8 @@
         "tagPattern": "^v(\\d+(?:\\.\\d+)*)$",
         "apkPattern": "^LieluPhoto-.*\\.apk$",
         "updateDetection": "installedTag"
-      }
+      },
+      "signingCertSha256": "5a0bbef8aa9f28169030647b5ec8102b47a9ac05e8efacc448583a493d9a2dc6"
     },
     {
       "id": "allcommand",
@@ -225,7 +230,8 @@
         "tagPattern": "^v(\\d+(?:\\.\\d+)*)$",
         "apkPattern": "^LieluTodo-.*\\.apk$",
         "apkExclude": "Staging"
-      }
+      },
+      "signingCertSha256": "1e5940fa4fead72d6e507b47a97b9bb65c57c899b203883bd6013d0b5e182a6d"
     },
     {
       "id": "offline-voice-input",
@@ -240,7 +246,8 @@
       "release": {
         "tagPattern": "^v(\\d+(?:\\.\\d+)*)$",
         "apkPattern": "^OfflineVoiceInput-.*\\.apk$"
-      }
+      },
+      "signingCertSha256": "f57cfa24cac1e39bedc03b7b13f7b6863075877afca180428870962c4f0a5499"
     },
     {
       "id": "kigardeki",

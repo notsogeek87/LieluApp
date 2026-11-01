@@ -43,7 +43,8 @@ void main() {
           packageName: 'com.davidgcd.backlog',
           versionName: '1.0.5',
           versionCode: 5,
-          signers: {'aa'})
+          // Empreinte épinglée dans catalog/apps.json : sinon le store refuse la mise à jour.
+          signers: {'74363e4e134d55883823caaeb29e0925091369dc66ee23933e842254b08ced65'})
       ..installedApps['com.vizuzik.app'] = const InstalledInfo(
           packageName: 'com.vizuzik.app',
           versionName: '1.0.20',
