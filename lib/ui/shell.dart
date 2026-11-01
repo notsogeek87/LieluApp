@@ -28,9 +28,6 @@ class _ShellState extends ConsumerState<Shell> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    // Le widget d'écran d'accueil suit le catalogue et l'ordre choisi par l'utilisateur.
-    ref.listenManual(widgetAppsProvider, (_, apps) => _syncWidget(widgetPayload(apps)),
-        fireImmediately: true);
     final platform = ref.read(platformProvider);
     _widgetLaunchSub = platform.widgetLaunches.listen(_openFromWidget);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
@@ -44,7 +41,7 @@ class _ShellState extends ConsumerState<Shell> with WidgetsBindingObserver {
   }
 
   Future<void> _syncWidget(String payload) async {
-    if (payload == _lastWidgetPayload) return;
+    if (!mounted || payload == _lastWidgetPayload) return;
     _lastWidgetPayload = payload;
     try {
       await ref.read(platformProvider).updateWidget(payload);
@@ -77,6 +74,12 @@ class _ShellState extends ConsumerState<Shell> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
+    // Le widget d'écran d'accueil suit le catalogue et l'ordre choisi par l'utilisateur
+    // (envoi après l'image, et seulement si le contenu a changé).
+    final widgetData = widgetPayload(ref.watch(widgetAppsProvider));
+    if (widgetData != _lastWidgetPayload) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _syncWidget(widgetData));
+    }
     final updates = ref.watch(updatesProvider).length;
     final active =
         ref.watch(installControllerProvider).values.where((s) => s.phase.active).length;

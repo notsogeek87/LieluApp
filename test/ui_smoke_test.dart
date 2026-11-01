@@ -120,7 +120,9 @@ void main() {
       child: const LieluStoreApp(),
     ));
     // Le catalogue embarqué se charge de façon asynchrone : on attend qu'il arrive au widget.
+    // La lecture de l'asset est une vraie E/S : elle n'avance pas en temps simulé.
     for (var i = 0; i < 30; i++) {
+      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 50)));
       await tester.pump(const Duration(milliseconds: 200));
       if (platform.widgetUpdates.isNotEmpty && platform.widgetUpdates.last != '[]') break;
     }
