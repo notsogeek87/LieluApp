@@ -81,13 +81,14 @@ object StoreChannel {
                     "install" -> {
                         val path = call.argument<String>("path")
                         val pkg = call.argument<String>("package")
+                        val silent = call.argument<Boolean>("allowSilentUpdate") == true
                         if (path == null || pkg == null) {
                             result.error("ARG", "path/package manquant", null)
                         } else {
                             // La copie de l'APK dans la session peut être longue : hors thread UI.
                             Thread {
                                 try {
-                                    commit(app, File(path), pkg)
+                                    commit(app, File(path), pkg, silent)
                                     main.post { result.success(null) }
                                 } catch (e: Exception) {
                                     main.post { result.error("INSTALL", e.message, null) }
@@ -227,13 +228,17 @@ object StoreChannel {
 
     // --------------------------------------------------------- installation
 
-    private fun commit(context: Context, apk: File, pkg: String) {
+    private fun commit(context: Context, apk: File, pkg: String, allowSilent: Boolean) {
         val installer = context.packageManager.packageInstaller
         val params = PackageInstaller.SessionParams(PackageInstaller.SessionParams.MODE_FULL_INSTALL)
         params.setAppPackageName(pkg)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            // Pas de confirmation inutile pour une mise à jour quand Android l'autorise.
-            params.setRequireUserAction(PackageInstaller.SessionParams.USER_ACTION_NOT_REQUIRED)
+            // Mise à jour sans confirmation seulement si la signature est épinglée dans le
+            // catalogue (vérifiée côté Dart) ; sinon Android demande toujours.
+            params.setRequireUserAction(
+                if (allowSilent) PackageInstaller.SessionParams.USER_ACTION_NOT_REQUIRED
+                else PackageInstaller.SessionParams.USER_ACTION_REQUIRED
+            )
         }
         val id = installer.createSession(params)
         installer.openSession(id).use { session ->

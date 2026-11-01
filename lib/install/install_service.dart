@@ -139,7 +139,10 @@ final class InstallService {
         message: 'Confirmez l\'installation dans la fenêtre Android.',
       ));
 
-      final result = await platform.install(file.path, entry.packageName);
+      // Sans empreinte épinglée, Android demande toujours confirmation : un APK
+      // publié par un tiers dans le dépôt ne s'installe jamais en silence.
+      final result = await platform.install(file.path, entry.packageName,
+          allowSilentUpdate: entry.signingCertSha256 != null && installed != null);
       if (result.ok) {
         await onInstalled?.call(entry, release);
         set(state.copyWith(

@@ -59,40 +59,84 @@ jobs:
       - name: Tests
         run: flutter test
 
-      # Clé de debug committée (android/ci-debug.p12), comme pour LieluFind : même signature à
-      # chaque build, donc chaque APK s'installe par-dessus le précédent sans désinstaller.
-      # À remplacer par une vraie clé secrète si l'app est un jour distribuée largement.
+      # Clé de publication fournie par les secrets du dépôt (KEYSTORE_BASE64, KEYSTORE_PASSWORD,
+      # KEY_ALIAS, KEY_PASSWORD). Sans eux : main échoue (aucune release mal signée), les
+      # autres builds sont signés par une clé de debug jetable propre au runner.
       - name: Configurer la signature
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          IS_MAIN: ${{ github.event_name != 'pull_request' && github.ref_name == 'main' }}
         run: |
-          cat > android/keystore.properties <<'PROPS'
-          storePassword=android
-          keyPassword=android
-          keyAlias=androiddebugkey
-          storeFile=../ci-debug.p12
-          PROPS
+          if [ -z "$KEYSTORE_BASE64" ] || [ -z "$KEYSTORE_PASSWORD" ] || [ -z "$KEY_ALIAS" ]; then
+            if [ "$IS_MAIN" = "true" ]; then
+              echo "::error::Secrets de signature absents : aucune release publiée sur main."
+              exit 1
+            fi
+            echo "::warning::Secrets de signature absents : APK signé par une clé de debug jetable."
+            exit 0
+          fi
+          umask 077
+          printf '%s' "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.p12"
+          {
+            printf 'storeFile=%s\n' "$RUNNER_TEMP/release.p12"
+            printf 'storePassword=%s\n' "$KEYSTORE_PASSWORD"
+            printf 'keyAlias=%s\n' "$KEY_ALIAS"
+            printf 'keyPassword=%s\n' "${KEY_PASSWORD:-$KEYSTORE_PASSWORD}"
+          } > android/keystore.properties
 
       # versionCode = run_number (strictement croissant), versionName = version du pubspec,
-      # tag de release v<version>.<run_number>.
+      # tag de release v<version>.<run_number>. La version est validée : elle finit dans
+      # des noms de fichier et de tag.
       - name: Déterminer la version
         id: version
+        env:
+          RUN_NUMBER: ${{ github.run_number }}
         run: |
           BASE=$(grep '^version:' pubspec.yaml | head -1 | awk '{print $2}' | cut -d+ -f1)
+          if ! printf '%s' "$BASE" | grep -Eq '^[0-9]+(\.[0-9]+)*$'; then
+            echo "::error::Version du pubspec invalide."
+            exit 1
+          fi
           echo "base=$BASE" >> "$GITHUB_OUTPUT"
-          echo "name=$BASE.${{ github.run_number }}" >> "$GITHUB_OUTPUT"
+          echo "name=$BASE.$RUN_NUMBER" >> "$GITHUB_OUTPUT"
 
       - name: Rendre gradlew exécutable
         run: chmod +x android/gradlew
 
       - name: Compiler l'APK (release)
+        env:
+          BASE: ${{ steps.version.outputs.base }}
+          RUN_NUMBER: ${{ github.run_number }}
         run: |
           flutter build apk --release --target-platform android-arm64 \
-            --build-name=${{ steps.version.outputs.base }} \
-            --build-number=${{ github.run_number }}
+            --build-name="$BASE" \
+            --build-number="$RUN_NUMBER"
+
+      # Garde-fou : sur main, l'APK doit être signé par la clé de publication du store
+      # (même empreinte que storeSigningCertSha256 dans lib/features/app_update/app_update.dart).
+      - name: Vérifier la signature (main)
+        if: github.event_name != 'pull_request' && github.ref_name == 'main'
+        env:
+          EXPECTED: 7d85d066c9575d76afe3b7a2b3fe8417a6f9059a76e5034d13aba586fed09e4f
+        run: |
+          APKSIGNER=$(ls -d "${ANDROID_SDK_ROOT:-$ANDROID_HOME}"/build-tools/*/apksigner | sort -V | tail -1)
+          CERTS=$("$APKSIGNER" verify --print-certs build/app/outputs/flutter-apk/app-release.apk)
+          echo "$CERTS" | grep -E "certificate DN|SHA-256 digest"
+          SIGNERS=$(echo "$CERTS" | grep -c "certificate SHA-256 digest")
+          if [ "$SIGNERS" != "1" ] || ! echo "$CERTS" | grep -q "certificate SHA-256 digest: $EXPECTED"; then
+            echo "::error::APK non signé par la clé de publication du store : release refusée."
+            exit 1
+          fi
 
       - name: Renommer l'APK avec sa version
         id: apk
+        env:
+          VERSION_NAME: ${{ steps.version.outputs.name }}
         run: |
-          NAME="LieluApp-${{ steps.version.outputs.name }}.apk"
+          NAME="LieluApp-$VERSION_NAME.apk"
           mkdir -p dist
           cp build/app/outputs/flutter-apk/app-release.apk "dist/$NAME"
           echo "path=dist/$NAME" >> "$GITHUB_OUTPUT"
@@ -110,46 +154,57 @@ jobs:
         if: github.event_name != 'pull_request' && github.ref_name == 'main'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION_NAME: ${{ steps.version.outputs.name }}
+          APK_PATH: ${{ steps.apk.outputs.path }}
+          APK_NAME: ${{ steps.apk.outputs.name }}
+          RUN_NUMBER: ${{ github.run_number }}
+          SHA: ${{ github.sha }}
         run: |
-          TAG="v${{ steps.version.outputs.name }}"
-          cat > release-notes.md <<'NOTES'
+          TAG="v$VERSION_NAME"
+          cat > release-notes.md <<NOTES
           ## Installer LieluApp
 
-          1. Télécharge l'APK `${{ steps.apk.outputs.name }}` ci-dessous (section « Assets »).
+          1. Télécharge l'APK \`$APK_NAME\` ci-dessous (section « Assets »).
           2. Ouvre-le. Si Android bloque l'installation, autorise la source (navigateur ou gestionnaire de fichiers) à installer des applications inconnues.
           3. Touche « Installer ».
 
-          Tous les APK ont la même clé de signature : une nouvelle version s'installe par-dessus l'ancienne, tes réglages sont conservés. Si Android refuse (« app non installée »), désinstalle l'ancienne version une fois, puis réinstalle.
+          Tous les APK sont signés par la clé de publication du store (CN=Lielu Store, SHA-256 \`7D:85:D0:66:C9:57:5D:76:AF:E3:B7:A2:B3:FE:84:17:A6:F9:05:9A:76:E5:03:4D:13:AB:A5:86:FE:D0:9E:4F\`) : une nouvelle version s'installe par-dessus l'ancienne. Si Android refuse (« app non installée »), c'est que l'app installée vient d'une ancienne version signée par la clé de debug : désinstalle-la une fois, puis réinstalle.
 
           ---
-          Run #${{ github.run_number }} (${{ github.sha }}). Signé avec la clé de debug committée.
+          Run #$RUN_NUMBER ($SHA).
           NOTES
           gh release create "$TAG" \
-            "${{ steps.apk.outputs.path }}" \
+            "$APK_PATH" \
             --title "LieluApp $TAG" \
             --notes-file release-notes.md \
-            --target "${{ github.sha }}"
+            --target "$SHA"
 
       # Autres branches / PR : un tag de pré-release par branche, remplacé à chaque build.
       - name: Déterminer le tag de release debug
         id: reltag
         if: "!(github.event_name != 'pull_request' && github.ref_name == 'main')"
+        env:
+          # Jamais interpolé dans le script : un nom de branche peut contenir \`$(...)\`.
+          BRANCH: ${{ github.head_ref || github.ref_name }}
         run: |
-          BRANCH="${{ github.head_ref || github.ref_name }}"
-          SAFE_BRANCH=$(echo "$BRANCH" | tr '/' '-')
+          SAFE_BRANCH=$(printf '%s' "$BRANCH" | tr -c 'A-Za-z0-9._-' '-')
           echo "tag=debug-$SAFE_BRANCH" >> "$GITHUB_OUTPUT"
-          echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
+          echo "branch=$SAFE_BRANCH" >> "$GITHUB_OUTPUT"
 
       - name: Publier l'APK de test en pré-release
         if: "!(github.event_name != 'pull_request' && github.ref_name == 'main')"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.reltag.outputs.tag }}
+          BRANCH: ${{ steps.reltag.outputs.branch }}
+          APK_PATH: ${{ steps.apk.outputs.path }}
+          RUN_NUMBER: ${{ github.run_number }}
+          SHA: ${{ github.sha }}
         run: |
-          TAG="${{ steps.reltag.outputs.tag }}"
           gh release delete "$TAG" --yes --cleanup-tag || true
           gh release create "$TAG" \
-            "${{ steps.apk.outputs.path }}" \
-            --title "LieluApp — APK de test (${{ steps.reltag.outputs.branch }})" \
-            --notes "Build de test de la branche. Run #${{ github.run_number }} (${{ github.sha }})." \
+            "$APK_PATH" \
+            --title "LieluApp — APK de test ($BRANCH)" \
+            --notes "Build de test de la branche. Run #$RUN_NUMBER ($SHA)." \
             --prerelease \
-            --target "${{ github.sha }}"
+            --target "$SHA"
