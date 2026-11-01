@@ -62,14 +62,67 @@ final widgetOrderProvider =
 final widgetAppsProvider = Provider<List<AppView>>((ref) => applyOrder(
     ref.watch(appViewsProvider), ref.watch(widgetOrderProvider), (v) => v.entry.id));
 
-/// Données transmises au widget Android (JSON). L'état « installée » est relu par
-/// le widget lui-même, pour rester juste même si le store n'est pas ouvert.
-String widgetPayload(List<AppView> apps) => jsonEncode([
-      for (final v in apps)
-        {
-          'id': v.entry.id,
-          'name': v.entry.name,
-          if (!v.entry.isWeb) 'packageName': v.entry.packageName,
-          if (v.entry.webUrl != null) 'url': v.entry.webUrl,
-        },
-    ]);
+/// Taille des icônes dans le widget d'écran d'accueil.
+enum WidgetIconSize {
+  small('Petites'),
+  medium('Moyennes'),
+  large('Grandes');
+
+  final String label;
+  const WidgetIconSize(this.label);
+}
+
+final class WidgetIconSizeNotifier extends Notifier<WidgetIconSize> {
+  static const _key = 'widget.iconSize';
+
+  @override
+  WidgetIconSize build() {
+    final saved = ref.read(sharedPrefsProvider).getString(_key);
+    return WidgetIconSize.values.firstWhere((s) => s.name == saved,
+        orElse: () => WidgetIconSize.medium);
+  }
+
+  Future<void> set(WidgetIconSize size) async {
+    state = size;
+    await ref.read(sharedPrefsProvider).setString(_key, size.name);
+  }
+}
+
+final widgetIconSizeProvider =
+    NotifierProvider<WidgetIconSizeNotifier, WidgetIconSize>(WidgetIconSizeNotifier.new);
+
+/// Données transmises au widget Android (JSON) : taille des icônes et apps dans
+/// l'ordre choisi. L'état « installée » est relu par le widget lui-même, pour
+/// rester juste même si le store n'est pas ouvert.
+String widgetPayload(List<AppView> apps, [WidgetIconSize size = WidgetIconSize.medium]) =>
+    jsonEncode({
+      'size': size.name,
+      'items': [
+        for (final v in apps)
+          {
+            'id': v.entry.id,
+            'name': v.entry.name,
+            if (!v.entry.isWeb) 'packageName': v.entry.packageName,
+            if (v.entry.webUrl != null) 'url': v.entry.webUrl,
+          },
+      ],
+    });
+
+final homeWidgetPayloadProvider = Provider<String>((ref) =>
+    widgetPayload(ref.watch(widgetAppsProvider), ref.watch(widgetIconSizeProvider)));
+
+/// Tient le widget d'écran d'accueil à jour (catalogue, apps installées, ordre,
+/// taille). Écoute au niveau du conteneur : contrairement à un écran, cette écoute
+/// n'est jamais mise en pause quand une autre page est affichée par-dessus.
+void startHomeWidgetSync(ProviderContainer container) {
+  String? last;
+  container.listen<String>(homeWidgetPayloadProvider, (_, payload) async {
+    if (payload == last) return;
+    last = payload;
+    try {
+      await container.read(platformProvider).updateWidget(payload);
+    } on Object {
+      last = null; // réessayé au prochain changement
+    }
+  }, fireImmediately: true);
+}

@@ -20,6 +20,7 @@ class WidgetOrderPage extends ConsumerWidget {
     final apps = ref.watch(widgetAppsProvider);
     final order = ref.watch(widgetOrderProvider);
     final notifier = ref.read(widgetOrderProvider.notifier);
+    final size = ref.watch(widgetIconSizeProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -39,13 +40,33 @@ class WidgetOrderPage extends ConsumerWidget {
             buildDefaultDragHandles: false,
             header: Padding(
               padding: const EdgeInsets.only(bottom: 12),
-              child: Text(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Taille des icônes', style: theme.textTheme.titleSmall),
+                  const SizedBox(height: 8),
+                  SegmentedButton<WidgetIconSize>(
+                    showSelectedIcon: false,
+                    segments: [
+                      for (final s in WidgetIconSize.values)
+                        ButtonSegment(value: s, label: Text(s.label)),
+                    ],
+                    selected: {size},
+                    onSelectionChanged: (s) =>
+                        ref.read(widgetIconSizeProvider.notifier).set(s.first),
+                  ),
+                  const SizedBox(height: 20),
+                  Text('Ordre des applications', style: theme.textTheme.titleSmall),
+                  const SizedBox(height: 8),
+                  Text(
                 'Le widget « Applications Lielu » affiche toutes les apps du catalogue dans cet '
                 'ordre. Faites glisser une ligne (poignée à droite, ou appui long) pour la déplacer.\n\n'
                 'Pour l\'ajouter : appui long sur l\'écran d\'accueil → Widgets → Lielu Store. '
                 'Les nouvelles apps du catalogue s\'ajoutent à la fin.',
                 style: theme.textTheme.bodySmall
                     ?.copyWith(color: theme.colorScheme.onSurfaceVariant, height: 1.45),
+                  ),
+                ],
               ),
             ),
             itemCount: apps.length,

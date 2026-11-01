@@ -22,6 +22,8 @@ class AppsWidgetProvider : AppWidgetProvider() {
     }
 
     companion object {
+        private const val EXTRA_VERSION = "eu.lielu.lieluapp.widget.VERSION"
+
         private fun flags(mutable: Boolean): Int {
             var f = PendingIntent.FLAG_UPDATE_CURRENT
             if (mutable && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) f = f or PendingIntent.FLAG_MUTABLE
@@ -42,10 +44,13 @@ class AppsWidgetProvider : AppWidgetProvider() {
                 flags(mutable = true),
             )
             for (id in ids) {
-                val views = RemoteViews(context.packageName, R.layout.widget_apps)
+                val views = RemoteViews(context.packageName, HomeWidget.widgetLayout(context))
                 val adapter = Intent(context, AppsWidgetService::class.java).apply {
                     putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, id)
-                    // Intent unique par widget, sinon Android réutilise le même adaptateur.
+                    // Intent unique par widget ET par version des données : à chaque envoi
+                    // du store (ordre, taille, catalogue), le lanceur crée un nouvel
+                    // adaptateur au lieu de réafficher sa liste en cache.
+                    putExtra(EXTRA_VERSION, HomeWidget.version(context))
                     data = Uri.parse(toUri(Intent.URI_INTENT_SCHEME))
                 }
                 @Suppress("DEPRECATION")

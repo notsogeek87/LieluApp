@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:lieluapp/features/home_widget/widget_order.dart';
 import 'package:lieluapp/ui/pages/detail_page.dart';
 import 'package:lieluapp/state/providers.dart';
 import 'package:lieluapp/ui/pages/apps_page.dart';
@@ -21,7 +20,6 @@ class Shell extends ConsumerStatefulWidget {
 
 class _ShellState extends ConsumerState<Shell> with WidgetsBindingObserver {
   int _index = 0;
-  String? _lastWidgetPayload;
   StreamSubscription<String>? _widgetLaunchSub;
 
   @override
@@ -38,16 +36,6 @@ class _ShellState extends ConsumerState<Shell> with WidgetsBindingObserver {
         // Pas de widget (ou canal indisponible) : rien à ouvrir.
       }
     });
-  }
-
-  Future<void> _syncWidget(String payload) async {
-    if (!mounted || payload == _lastWidgetPayload) return;
-    _lastWidgetPayload = payload;
-    try {
-      await ref.read(platformProvider).updateWidget(payload);
-    } on Object {
-      _lastWidgetPayload = null;
-    }
   }
 
   void _openFromWidget(String appId) {
@@ -74,12 +62,6 @@ class _ShellState extends ConsumerState<Shell> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    // Le widget d'écran d'accueil suit le catalogue et l'ordre choisi par l'utilisateur
-    // (envoi après l'image, et seulement si le contenu a changé).
-    final widgetData = widgetPayload(ref.watch(widgetAppsProvider));
-    if (widgetData != _lastWidgetPayload) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _syncWidget(widgetData));
-    }
     final updates = ref.watch(updatesProvider).length;
     final active =
         ref.watch(installControllerProvider).values.where((s) => s.phase.active).length;

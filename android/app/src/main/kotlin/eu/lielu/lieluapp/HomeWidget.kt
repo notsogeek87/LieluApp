@@ -4,6 +4,7 @@ import android.appwidget.AppWidgetManager
 import android.content.ComponentName
 import android.content.Context
 import org.json.JSONArray
+import org.json.JSONObject
 
 /** Une application affichée par le widget d'écran d'accueil. */
 data class WidgetApp(
@@ -22,6 +23,8 @@ data class WidgetApp(
 object HomeWidget {
     private const val PREFS = "lielu_home_widget"
     private const val KEY_ITEMS = "items"
+    private const val KEY_SIZE = "size"
+    private const val KEY_VERSION = "version"
 
     /** Fiche demandée depuis le widget avant que Flutter ne soit prêt (démarrage à froid). */
     @Volatile
@@ -33,10 +36,50 @@ object HomeWidget {
 
     fun takePendingLaunch(): String? = pendingLaunch.also { pendingLaunch = null }
 
-    fun save(context: Context, itemsJson: String) {
-        JSONArray(itemsJson) // refuse un JSON invalide avant de l'enregistrer
-        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-            .edit().putString(KEY_ITEMS, itemsJson).apply()
+    /**
+     * Enregistre les données envoyées par le store : `{"size": "...", "items": [...]}`
+     * (un simple tableau reste accepté). Chaque envoi incrémente une version qui
+     * force le widget à relire la liste, même si le lanceur garde l'ancienne en cache.
+     */
+    fun save(context: Context, payload: String) {
+        val trimmed = payload.trim()
+        val items: JSONArray
+        var size = "medium"
+        if (trimmed.startsWith("{")) {
+            val o = JSONObject(trimmed)
+            items = o.optJSONArray("items") ?: JSONArray()
+            size = o.optString("size", "medium")
+        } else {
+            items = JSONArray(trimmed)
+        }
+        val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        prefs.edit()
+            .putString(KEY_ITEMS, items.toString())
+            .putString(KEY_SIZE, size)
+            .putLong(KEY_VERSION, prefs.getLong(KEY_VERSION, 0) + 1)
+            // commit (synchrone) : le widget relit ces valeurs juste après.
+            .commit()
+    }
+
+    fun size(context: Context): String =
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY_SIZE, "medium")
+            ?: "medium"
+
+    fun version(context: Context): Long =
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getLong(KEY_VERSION, 0)
+
+    /** Gabarit du widget selon la taille choisie. */
+    fun widgetLayout(context: Context): Int = when (size(context)) {
+        "small" -> R.layout.widget_apps_small
+        "large" -> R.layout.widget_apps_large
+        else -> R.layout.widget_apps
+    }
+
+    /** Gabarit d'une case selon la taille choisie. */
+    fun itemLayout(context: Context): Int = when (size(context)) {
+        "small" -> R.layout.widget_app_item_small
+        "large" -> R.layout.widget_app_item_large
+        else -> R.layout.widget_app_item
     }
 
     fun load(context: Context): List<WidgetApp> {

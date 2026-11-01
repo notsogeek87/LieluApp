@@ -10,7 +10,6 @@ import 'package:lieluapp/state/settings.dart';
 import 'package:lieluapp/catalog/catalog_repository.dart';
 import 'package:lieluapp/features/home_widget/widget_order.dart';
 import 'package:lieluapp/main.dart';
-import 'package:lieluapp/ui/shell.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'support/fakes.dart';
@@ -119,28 +118,48 @@ void main() {
     // Catalogue lu directement (lecture synchrone) : l'asset embarqué passe par une
     // vraie E/S qui n'aboutit pas de façon fiable en temps simulé.
     final catalogJson = File('catalog/apps.json').readAsStringSync();
-    await tester.pumpWidget(ProviderScope(
-      overrides: [
-        sharedPrefsProvider.overrideWithValue(prefs),
-        platformProvider.overrideWithValue(platform),
-        dioProvider.overrideWithValue(dio),
-        catalogRepositoryProvider.overrideWithValue(
-            CatalogRepository(dio, prefs, loadBundled: () async => catalogJson)),
-      ],
-      child: const LieluStoreApp(),
-    ));
-    for (var i = 0; i < 20; i++) {
-      await tester.pump(const Duration(milliseconds: 200));
-      if (platform.widgetUpdates.isNotEmpty && platform.widgetUpdates.last != '[]') break;
+    // Même montage que main() : conteneur + synchronisation du widget.
+    final container = ProviderContainer(overrides: [
+      sharedPrefsProvider.overrideWithValue(prefs),
+      platformProvider.overrideWithValue(platform),
+      dioProvider.overrideWithValue(dio),
+      catalogRepositoryProvider.overrideWithValue(
+          CatalogRepository(dio, prefs, loadBundled: () async => catalogJson)),
+    ]);
+    addTearDown(container.dispose);
+    startHomeWidgetSync(container);
+    await tester.pumpWidget(
+        UncontrolledProviderScope(container: container, child: const LieluStoreApp()));
+
+    List<Map<String, dynamic>> lastItems() {
+      if (platform.widgetUpdates.isEmpty) return const [];
+      final p = jsonDecode(platform.widgetUpdates.last) as Map<String, dynamic>;
+      return (p['items'] as List).cast<Map<String, dynamic>>();
     }
-    final container = ProviderScope.containerOf(tester.element(find.byType(Shell)));
+
+    Future<void> settle() async {
+      for (var i = 0; i < 20; i++) {
+        await tester.pump(const Duration(milliseconds: 200));
+      }
+    }
+
+    await settle();
     final diag = 'appViews=${container.read(appViewsProvider).length} '
-        'widgetApps=${container.read(widgetAppsProvider).length} '
-        'envois=${platform.widgetUpdates.map((u) => u.length).toList()}';
-    expect(platform.widgetUpdates, isNotEmpty, reason: diag);
-    expect(platform.widgetUpdates.last, isNot('[]'), reason: diag);
-    final items = (jsonDecode(platform.widgetUpdates.last) as List).cast<Map<String, dynamic>>();
-    expect(items.take(2).map((i) => i['id']), ['vizuzik', 'kigardeki']);
-    expect(items.any((i) => i['id'] == 'swipernews'), isTrue);
+        'envois=${platform.widgetUpdates.length}';
+    expect(lastItems(), isNotEmpty, reason: diag);
+    expect(lastItems().take(2).map((i) => i['id']), ['vizuzik', 'kigardeki']);
+    expect(lastItems().any((i) => i['id'] == 'swipernews'), isTrue);
+
+    // Nouveau classement fait pendant qu'une autre page couvre l'accueil : le widget suit.
+    await tester.tap(find.byIcon(Icons.settings_outlined).first);
+    await settle();
+    await container.read(widgetOrderProvider.notifier).set(['swipernews', 'backlog']);
+    await settle();
+    expect(lastItems().take(2).map((i) => i['id']), ['swipernews', 'backlog']);
+
+    // Taille des icônes transmise.
+    await container.read(widgetIconSizeProvider.notifier).set(WidgetIconSize.large);
+    await settle();
+    expect((jsonDecode(platform.widgetUpdates.last) as Map)['size'], 'large');
   });
 }

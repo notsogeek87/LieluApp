@@ -23,6 +23,7 @@ class AppsWidgetService : RemoteViewsService() {
 
 class AppsWidgetFactory(private val context: Context) : RemoteViewsService.RemoteViewsFactory {
     private var apps: List<WidgetApp> = emptyList()
+    private var itemLayout: Int = R.layout.widget_app_item
     private val icons = HashMap<String, Bitmap>()
 
     override fun onCreate() {}
@@ -30,6 +31,7 @@ class AppsWidgetFactory(private val context: Context) : RemoteViewsService.Remot
     // Appelé hors du thread UI : on peut y lire les préférences et décoder les icônes.
     override fun onDataSetChanged() {
         apps = HomeWidget.load(context)
+        itemLayout = HomeWidget.itemLayout(context)
         icons.clear()
     }
 
@@ -40,7 +42,7 @@ class AppsWidgetFactory(private val context: Context) : RemoteViewsService.Remot
     override fun getCount(): Int = apps.size
 
     override fun getViewAt(position: Int): RemoteViews {
-        val views = RemoteViews(context.packageName, R.layout.widget_app_item)
+        val views = RemoteViews(context.packageName, itemLayout)
         val app = apps.getOrNull(position) ?: return views
         val installed = app.packageName != null &&
             context.packageManager.getLaunchIntentForPackage(app.packageName) != null
@@ -65,7 +67,7 @@ class AppsWidgetFactory(private val context: Context) : RemoteViewsService.Remot
     }
 
     override fun getLoadingView(): RemoteViews? = null
-    override fun getViewTypeCount(): Int = 1
+    override fun getViewTypeCount(): Int = 3 // petit, moyen, grand
     override fun getItemId(position: Int): Long = position.toLong()
     override fun hasStableIds(): Boolean = false
 

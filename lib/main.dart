@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lieluapp/features/home_widget/widget_order.dart';
 import 'package:lieluapp/state/settings.dart';
 import 'package:lieluapp/ui/shell.dart';
 import 'package:lieluapp/ui/theme.dart';
@@ -8,8 +9,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final prefs = await SharedPreferences.getInstance();
-  runApp(ProviderScope(
+  final container = ProviderContainer(
     overrides: [sharedPrefsProvider.overrideWithValue(prefs)],
+  );
+  startHomeWidgetSync(container);
+  runApp(UncontrolledProviderScope(
+    container: container,
     child: const LieluStoreApp(),
   ));
 }

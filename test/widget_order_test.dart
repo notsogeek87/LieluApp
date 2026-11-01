@@ -24,7 +24,9 @@ void main() {
   test('données du widget : toutes les apps, paquet Android ou adresse web', () {
     final catalog = parseCatalog(File('catalog/apps.json').readAsStringSync());
     final views = [for (final e in catalog.entries) AppView(e)];
-    final items = (jsonDecode(widgetPayload(views)) as List).cast<Map<String, dynamic>>();
+    final payload = jsonDecode(widgetPayload(views, WidgetIconSize.large)) as Map<String, dynamic>;
+    expect(payload['size'], 'large');
+    final items = (payload['items'] as List).cast<Map<String, dynamic>>();
     expect(items.length, catalog.entries.length);
     final web = items.firstWhere((i) => i['id'] == 'kigardeki');
     expect(web['url'], 'https://kigardeki.lielu.eu');
