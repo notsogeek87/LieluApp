@@ -6,7 +6,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:lieluapp/platform/store_platform.dart';
 import 'package:lieluapp/state/providers.dart';
 import 'package:lieluapp/state/settings.dart';
+import 'package:lieluapp/features/home_widget/widget_order.dart';
 import 'package:lieluapp/main.dart';
+import 'package:lieluapp/ui/shell.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'support/fakes.dart';
@@ -126,7 +128,12 @@ void main() {
       await tester.pump(const Duration(milliseconds: 200));
       if (platform.widgetUpdates.isNotEmpty && platform.widgetUpdates.last != '[]') break;
     }
-    expect(platform.widgetUpdates, isNotEmpty);
+    final container = ProviderScope.containerOf(tester.element(find.byType(Shell)));
+    final diag = 'appViews=${container.read(appViewsProvider).length} '
+        'widgetApps=${container.read(widgetAppsProvider).length} '
+        'envois=${platform.widgetUpdates.map((u) => u.length).toList()}';
+    expect(platform.widgetUpdates, isNotEmpty, reason: diag);
+    expect(platform.widgetUpdates.last, isNot('[]'), reason: diag);
     final items = (jsonDecode(platform.widgetUpdates.last) as List).cast<Map<String, dynamic>>();
     expect(items.take(2).map((i) => i['id']), ['vizuzik', 'kigardeki']);
     expect(items.any((i) => i['id'] == 'swipernews'), isTrue);
