@@ -29,6 +29,19 @@ final entry = CatalogEntry(
   release: ReleaseRules.fromJson(null),
 );
 
+/// Même app, signature épinglée dans le catalogue (empreinte de l'inspection : 'aa').
+final pinned = CatalogEntry(
+  id: 'demo',
+  name: 'Demo',
+  packageName: 'eu.lielu.demo',
+  repo: 'o/r',
+  category: 'Outils',
+  shortDescription: 'x',
+  description: 'x',
+  signingCertSha256: 'aa',
+  release: ReleaseRules.fromJson(null),
+);
+
 ReleaseInfo release({String? sha, String? checksumUrl, int? size, bool noApk = false}) =>
     ReleaseInfo(
       tag: 'v1.0.10',
@@ -157,6 +170,27 @@ void main() {
     expect(last.phase, InstallPhase.failed);
     expect(last.message, contains('autre clé'));
     expect(platform.installCalls, isEmpty);
+  });
+
+  test('sans empreinte épinglée : la mise à jour demande toujours confirmation', () async {
+    platform.installedApps['eu.lielu.demo'] = const InstalledInfo(
+        packageName: 'eu.lielu.demo', versionName: '1.0.5', versionCode: 5, signers: {'aa'});
+    await run(service(), release(sha: goodSha));
+    expect(platform.silentFlags, [false]);
+  });
+
+  test('empreinte épinglée et app installée : mise à jour sans confirmation autorisée', () async {
+    platform.installedApps['eu.lielu.demo'] = const InstalledInfo(
+        packageName: 'eu.lielu.demo', versionName: '1.0.5', versionCode: 5, signers: {'aa'});
+    await service().run(pinned, release(sha: goodSha), CancelToken(), states.add);
+    expect(states.last.phase, InstallPhase.installed);
+    expect(platform.silentFlags, [true]);
+  });
+
+  test('empreinte épinglée, première installation : confirmation demandée', () async {
+    await service().run(pinned, release(sha: goodSha), CancelToken(), states.add);
+    expect(states.last.phase, InstallPhase.installed);
+    expect(platform.silentFlags, [false]);
   });
 
   test('APK illisible par Android : message clair', () async {

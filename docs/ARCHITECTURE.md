@@ -15,7 +15,7 @@ PackageManager (Kotlin) ─► StorePlatform.installed ────────�
 | Catalogue | JSON statique dans un dépôt public GitHub | zéro serveur, versionné, relu par PR ; copie embarquée dans l'APK pour le premier lancement hors-ligne |
 | Versions/releases | **pas dans le catalogue** : lues en direct sur l'API GitHub | une release publiée apparaît sans toucher au catalogue |
 | Quota GitHub | requêtes conditionnelles (ETag) + intervalle de rafraîchissement | 60 req/h/IP sans jeton ; un 304 n'est pas décompté |
-| Installation | `PackageInstaller` (session) | résultats exploitables (conflit, stockage…) ; jamais silencieux |
+| Installation | `PackageInstaller` (session) | résultats exploitables (conflit, stockage…) ; sans confirmation seulement pour la mise à jour d'une app à signature épinglée |
 | Visibilité des apps | `<queries>` sur l'intent LAUNCHER | pas de `QUERY_ALL_PACKAGES`, et une nouvelle app du catalogue est détectée sans republier |
 
 ## Modules (`lib/`)
@@ -33,5 +33,5 @@ PackageManager (Kotlin) ─► StorePlatform.installed ────────�
 
 - Sans jeton, l'API GitHub est limitée (60 req/h/IP). Avec ~10 apps et un rafraîchissement toutes les 6 h c'est largement suffisant ; au-delà, passer à un `releases.json` généré par une GitHub Action dans le dépôt du catalogue.
 - Pas de notification en arrière-plan : les mises à jour sont détectées à l'ouverture, selon l'intervalle des Paramètres.
-- Une mise à jour silencieuse sans confirmation n'est pas possible pour une app ordinaire.
+- Une mise à jour sans confirmation n'est demandée à Android que si `signingCertSha256` est épinglé dans le catalogue (et vérifié avant).
 - La vérification d'intégrité dépend d'un SHA-256 publié (digest GitHub ou `.sha256`) : à défaut, le store l'indique.

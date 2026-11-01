@@ -68,6 +68,7 @@ final class FakePlatform implements StorePlatform {
   @override
   Future<void> openInstallSettings() async {}
   final widgetUpdates = <String>[];
+  final silentFlags = <bool>[];
   @override
   Future<void> updateWidget(String itemsJson) async => widgetUpdates.add(itemsJson);
   @override
@@ -75,8 +76,10 @@ final class FakePlatform implements StorePlatform {
   @override
   Stream<String> get widgetLaunches => const Stream.empty();
   @override
-  Future<InstallResult> install(String path, String packageName) async {
+  Future<InstallResult> install(String path, String packageName,
+      {bool allowSilentUpdate = false}) async {
     installCalls.add(path);
+    silentFlags.add(allowSilentUpdate);
     return installResult;
   }
 }

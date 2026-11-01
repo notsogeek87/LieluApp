@@ -108,7 +108,12 @@ abstract interface class StorePlatform {
   Future<void> openInstallSettings();
 
   /// Installe via PackageInstaller ; Android affiche sa propre confirmation.
-  Future<InstallResult> install(String path, String packageName);
+  ///
+  /// [allowSilentUpdate] : une mise à jour peut se passer de confirmation
+  /// (Android 12+, store installateur de l'app). Réservé aux apps dont la
+  /// signature est épinglée dans le catalogue.
+  Future<InstallResult> install(String path, String packageName,
+      {bool allowSilentUpdate = false});
 
   /// Transmet au widget d'écran d'accueil la liste ordonnée des apps (JSON).
   Future<void> updateWidget(String itemsJson);
@@ -207,13 +212,18 @@ final class MethodChannelStorePlatform implements StorePlatform {
   Future<void> openInstallSettings() => _channel.invokeMethod('openInstallSettings');
 
   @override
-  Future<InstallResult> install(String path, String packageName) async {
+  Future<InstallResult> install(String path, String packageName,
+      {bool allowSilentUpdate = false}) async {
     final done = Completer<InstallResult>();
     _pending[packageName] = (r) {
       if (!done.isCompleted) done.complete(r);
     };
     try {
-      await _channel.invokeMethod('install', {'path': path, 'package': packageName});
+      await _channel.invokeMethod('install', {
+        'path': path,
+        'package': packageName,
+        'allowSilentUpdate': allowSilentUpdate,
+      });
     } on PlatformException catch (e) {
       _pending.remove(packageName);
       return InstallResult.failure('failure', e.message);

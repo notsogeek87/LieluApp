@@ -95,7 +95,7 @@ place comme pour les apps Android : `catalog/icons/<id>.png` (embarquée à la c
 | `maintenance` | non | `active`, `maintenance`, `paused`, `archived` |
 | `featured` | non | affichée dans « Applications à la une » |
 | `minSdk` | non | indication affichée ; la vraie valeur est relue dans l'APK |
-| `signingCertSha256` | non | empreinte SHA-256 du certificat attendu : imposée **dès la première installation** (commande : `apksigner verify --print-certs app.apk`) |
+| `signingCertSha256` | non (fortement recommandé) | empreinte SHA-256 du certificat attendu : imposée **dès la première installation** et condition des mises à jour sans confirmation. Le workflow *Catalog signing pins* la relève pour toutes les apps (commande manuelle : `apksigner verify --print-certs app.apk`). Ne pas épingler une clé de debug publique. |
 | `listed` | non | `false` = entrée conservée dans le fichier mais masquée |
 | `release.tagPattern` | non | regex, **le groupe 1 est la version**. Défaut : `^v?(\d+(?:\.\d+)*…)$` |
 | `release.apkPattern` | non | regex sur le nom de fichier de l'APK à prendre |
@@ -133,4 +133,6 @@ Une entrée invalide n'empêche pas les autres de s'afficher : elle est ignorée
 4. Android lit l'APK : `packageName` identique au catalogue, `minSdk` et architecture compatibles,
    `versionCode` strictement supérieur à l'installé.
 5. **Signature** identique à celle de l'app déjà installée (ou à `signingCertSha256`). Sinon : refus, rien n'est modifié.
-6. Installation par `PackageInstaller` : Android affiche toujours sa confirmation.
+6. Installation par `PackageInstaller`. Android affiche sa confirmation, sauf pour une **mise à jour** d'une app
+   dont `signingCertSha256` est renseigné (Android 12+, store installateur de l'app) : elle peut alors se faire
+   sans fenêtre. Sans empreinte épinglée, la confirmation est toujours demandée.

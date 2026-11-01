@@ -1,0 +1,42 @@
+name: Catalog signing pins
+
+# Relève l'empreinte de signature (signingCertSha256) de chaque app Android du catalogue
+# à partir de sa dernière release. Le rapport est dans le résumé du run ; si des
+# empreintes manquantes ont été ajoutées, elles sont poussées sur la branche
+# `catalog-pins`, à relire puis fusionner dans main (le store lit le catalogue de main).
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  pins:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Relever les empreintes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          APKSIGNER=$(ls -d "${ANDROID_SDK_ROOT:-$ANDROID_HOME}"/build-tools/*/apksigner | sort -V | tail -1)
+          python3 tool/catalog_pins.py catalog/apps.json "$APKSIGNER" "$RUNNER_TEMP/report.md"
+          cat "$RUNNER_TEMP/report.md" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Pousser le catalogue épinglé sur la branche catalog-pins
+        run: |
+          if git diff --quiet -- catalog/apps.json; then
+            echo "Aucune empreinte ajoutée."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B catalog-pins
+          git commit -am "Catalogue : épinglage des empreintes de signature"
+          git push --force origin catalog-pins
+          echo "Branche catalog-pins poussée : à fusionner dans main après relecture." >> "$GITHUB_STEP_SUMMARY"
