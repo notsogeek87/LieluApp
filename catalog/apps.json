@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-26T12:00:00Z",
+  "updatedAt": "2026-11-01T12:00:00Z",
   "apps": [
     {
       "id": "swipernews",
@@ -225,6 +225,21 @@
         "tagPattern": "^v(\\d+(?:\\.\\d+)*)$",
         "apkPattern": "^LieluTodo-.*\\.apk$",
         "apkExclude": "Staging"
+      }
+    },
+    {
+      "id": "offline-voice-input",
+      "name": "Offline Voice Input",
+      "packageName": "dev.notune.transcribe",
+      "repo": "notsogeek87/bubble-android_transcribe_app",
+      "category": "Outils",
+      "shortDescription": "Dictée vocale 100 % hors ligne, dans n'importe quelle app, et sous-titres en direct.",
+      "description": "Reconnaissance vocale entièrement sur l'appareil (modèle NVIDIA Parakeet, 25 langues dont le français) : touchez le micro de votre clavier (SwiftKey…) ou utilisez le clavier vocal intégré, et le texte s'écrit dans n'importe quelle app. Sous-titres en direct de l'audio du téléphone et transcription de fichiers audio partagés. Aucun audio n'est envoyé ni stocké ; le modèle (environ 670 Mo) est téléchargé une seule fois au premier lancement. Fork de notune/android_transcribe_app (MIT), même identifiant que la version du Play Store mais signature différente : désinstallez celle-ci avant d'installer depuis le store. arm64 uniquement.",
+      "maintenance": "active",
+      "minSdk": 26,
+      "release": {
+        "tagPattern": "^v(\\d+(?:\\.\\d+)*)$",
+        "apkPattern": "^OfflineVoiceInput-.*\\.apk$"
       }
     }
   ]

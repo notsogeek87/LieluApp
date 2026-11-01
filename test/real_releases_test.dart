@@ -138,4 +138,9 @@ void main() {
         ('v1.0.1', false, 'LieluTodo-1.0.1.apk'),
         ('staging-v1.0.2', true, 'LieluTodo-Staging-1.0.2.apk'),
       ], 'v1.0.1', 'LieluTodo-1.0.1.apk'));
+
+  test('Offline Voice Input : pré-release debug-… ignorée', () => expectLatest('offline-voice-input', [
+        ('v0.2.119', false, 'OfflineVoiceInput-0.2.119.apk'),
+        ('debug-staging', true, 'OfflineVoiceInput-0.2.120.apk'),
+      ], 'v0.2.119', 'OfflineVoiceInput-0.2.119.apk'));
 }
