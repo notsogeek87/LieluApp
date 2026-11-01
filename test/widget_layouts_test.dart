@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
 /// Vues autorisées dans un widget d'écran d'accueil (classes annotées @RemoteView
-/// dans Android). Une autre vue — même un simple <View> — empêche Android
+/// dans Android). Une autre vue — même un simple `<View>` — empêche Android
 /// d'afficher le widget : le lanceur refuse alors de le poser.
 const _remoteViews = {
   'FrameLayout', 'LinearLayout', 'RelativeLayout', 'GridLayout',
