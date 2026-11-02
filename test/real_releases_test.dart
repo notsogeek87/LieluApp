@@ -74,13 +74,6 @@ void main() {
         ('v1.0.34', false, 'monNhuitNe-1.0.34.apk'),
         ('debug-staging', true, 'x.apk'),
       ], 'v1.0.34', 'monNhuitNe-1.0.34.apk'));
-
-  test('ArcExtract : v0.1.0-34 est bien plus récent que v0.1.0-7', () => expectLatest('arcextract', [
-        ('v0.1.0-7', false, 'ArcExtract-0.1.0-7.apk'),
-        ('v0.1.0-34', false, 'ArcExtract-0.1.0-34.apk'),
-        ('v0.1.0-4', false, 'ArcExtract-0.1.0-4.apk'),
-      ], 'v0.1.0-34', 'ArcExtract-0.1.0-34.apk'));
-
   test('LieluKeep : 4 APK par release, celui du téléphone est choisi', () {
     List<Map<String, dynamic>> withAbis(String tag) => [
           {

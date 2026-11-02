@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-01T12:00:00Z",
+  "updatedAt": "2026-11-02T12:00:00Z",
   "apps": [
     {
       "id": "swipernews",
@@ -57,7 +57,7 @@
     {
       "id": "yakwa",
       "name": "Yakwa",
-      "packageName": "com.rangele.inventory",
+      "packageName": "com.rangele.inventory.debug",
       "repo": "notsogeek87/rangele",
       "category": "Productivité",
       "shortDescription": "Inventaire de placard et de cuisine, avec import par scan de ticket de courses.",
@@ -98,22 +98,6 @@
       "release": {
         "tagPattern": "^v(\\d+(?:\\.\\d+)*)$",
         "apkPattern": "^monNhuitNe-.*\\.apk$"
-      }
-    },
-    {
-      "id": "arcextract",
-      "name": "ArcExtract",
-      "packageName": "eu.lielu.arcextract",
-      "repo": "notsogeek87/extract-repack",
-      "category": "Outils",
-      "shortDescription": "Extrait sur l'appareil des installateurs Inno Setup contenant des archives FreeArc/ARC.",
-      "description": "Application Android native (Kotlin/Compose + C++/NDK) pour extraire, sans PC ni Wine, des installateurs Inno Setup dont les données sont des archives FreeArc/ARC. Aucune permission réseau ni stockage : l'accès aux fichiers passe par le sélecteur Android. Projet en cours : voir la documentation du dépôt pour les formats réellement pris en charge.",
-      "maintenance": "active",
-      "minSdk": 26,
-      "release": {
-        "tagPattern": "^v(\\d+\\.\\d+\\.\\d+-\\d+)$",
-        "apkPattern": "^ArcExtract-.*\\.apk$",
-        "updateDetection": "installedTag"
       }
     },
     {
