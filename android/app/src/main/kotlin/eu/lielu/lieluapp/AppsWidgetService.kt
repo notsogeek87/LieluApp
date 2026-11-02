@@ -36,8 +36,14 @@ class AppsWidgetFactory(private val context: Context) : RemoteViewsService.Remot
         apps = HomeWidget.load(context)
         iconDp = HomeWidget.iconDp(context)
         // Bitmap à la taille affichée (plafonnée pour rester légère à transmettre).
-        iconPx = HomeWidget.dpToPx(context, iconDp.toFloat()).coerceIn(48, MAX_ICON_PX)
-        icons.clear()
+        val px = HomeWidget.dpToPx(context, iconDp.toFloat()).coerceIn(48, MAX_ICON_PX)
+        if (px != iconPx) icons.clear()
+        iconPx = px
+        // Icônes préparées ici (hors thread UI) : getViewAt répond tout de suite et
+        // le lanceur n'affiche pas de case « Chargement… » qui ferait clignoter la grille.
+        val ids = apps.mapTo(HashSet()) { it.id }
+        icons.keys.retainAll(ids)
+        apps.forEach { icon(it) }
     }
 
     override fun onDestroy() {
@@ -78,10 +84,13 @@ class AppsWidgetFactory(private val context: Context) : RemoteViewsService.Remot
         return views
     }
 
-    override fun getLoadingView(): RemoteViews? = null
+    // Case vide transparente (et non le « Chargement… » par défaut d'Android).
+    override fun getLoadingView(): RemoteViews = RemoteViews(context.packageName, R.layout.widget_app_item)
     override fun getViewTypeCount(): Int = 1
-    override fun getItemId(position: Int): Long = position.toLong()
-    override fun hasStableIds(): Boolean = false
+    // Identifiants stables : la grille réutilise ses cases au lieu de tout redessiner.
+    override fun getItemId(position: Int): Long =
+        apps.getOrNull(position)?.id?.hashCode()?.toLong() ?: position.toLong()
+    override fun hasStableIds(): Boolean = true
 
     // ------------------------------------------------------------- icônes
 
