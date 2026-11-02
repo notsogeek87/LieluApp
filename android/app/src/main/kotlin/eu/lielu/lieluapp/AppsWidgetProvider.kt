@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
+import android.view.View
 import android.widget.RemoteViews
 
 /**
@@ -16,9 +17,10 @@ import android.widget.RemoteViews
 class AppsWidgetProvider : AppWidgetProvider() {
 
     override fun onUpdate(context: Context, manager: AppWidgetManager, ids: IntArray) {
+        // Pas de notifyAppWidgetViewDataChanged ici : les données n'ont pas changé
+        // (le store s'en charge via HomeWidget.refresh). Le forcer rechargeait toute
+        // la grille et faisait clignoter le widget, notamment quand on le déplace.
         updateAll(context, manager, ids)
-        @Suppress("DEPRECATION")
-        manager.notifyAppWidgetViewDataChanged(ids, R.id.widget_grid)
     }
 
     companion object {
@@ -32,6 +34,7 @@ class AppsWidgetProvider : AppWidgetProvider() {
         }
 
         fun updateAll(context: Context, manager: AppWidgetManager, ids: IntArray) {
+            val hasApps = HomeWidget.load(context).isNotEmpty()
             val openStore = PendingIntent.getActivity(
                 context, 0,
                 Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
@@ -70,7 +73,11 @@ class AppsWidgetProvider : AppWidgetProvider() {
                 }
                 @Suppress("DEPRECATION")
                 views.setRemoteAdapter(R.id.widget_grid, adapter)
-                views.setEmptyView(R.id.widget_grid, R.id.widget_empty)
+                // Message « liste vide » géré ici plutôt qu'avec setEmptyView : sinon il
+                // s'affiche un instant à chaque fois que le lanceur recrée la grille
+                // (déplacement du widget, retour sur l'écran d'accueil) → clignotement.
+                views.setViewVisibility(R.id.widget_grid, if (hasApps) View.VISIBLE else View.GONE)
+                views.setViewVisibility(R.id.widget_empty, if (hasApps) View.GONE else View.VISIBLE)
                 views.setPendingIntentTemplate(R.id.widget_grid, itemTemplate)
                 views.setOnClickPendingIntent(R.id.widget_header, openStore)
                 views.setOnClickPendingIntent(R.id.widget_settings, openSettings)
