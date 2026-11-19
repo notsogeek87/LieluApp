@@ -94,8 +94,10 @@ class LauncherPopupActivity : Activity() {
         fromBottom = anchor?.let { it.centerY() > metrics.heightPixels / 2 } ?: true
         // Colonnes : 4 au plus, moins si l'écran est étroit ou s'il y a peu d'apps.
         val fit = (resources.displayMetrics.widthPixels - 2 * dp(MARGIN_DP) - dp(24f)) / dp(CELL_DP)
-        val columns = min(apps.size, fit.coerceIn(1, MAX_COLUMNS))
-        val rows = (apps.size + columns - 1) / columns
+        // Une case de plus, la dernière (la plus loin du bouton) : réglage de l'ordre.
+        val count = apps.size + 1
+        val columns = min(count, fit.coerceIn(1, MAX_COLUMNS))
+        val rows = (count + columns - 1) / columns
         val grid = GridLayout(this).apply {
             columnCount = columns
             rowCount = rows
@@ -104,8 +106,8 @@ class LauncherPopupActivity : Activity() {
         // Pratique au pouce : les premières apps sont au plus près du bouton, puis
         // la grille s'en éloigne (rangées vers le haut si le bouton est en bas,
         // colonnes vers la gauche s'il est à droite).
-        apps.forEachIndexed { i, app ->
-            val cell = cell(app, iconPx)
+        val entries: List<View> = apps.map { cell(it, iconPx) } + settingsCell(iconPx)
+        entries.forEachIndexed { i, cell ->
             val r = i / columns
             val c = i % columns
             val row = if (fromBottom) rows - 1 - r else r
@@ -145,6 +147,55 @@ class LauncherPopupActivity : Activity() {
             )
         }
         return root
+    }
+
+    /** Case « Ordre des apps » : ouvre le réglage du widget dans le store. */
+    private fun settingsCell(iconPx: Int): View = LinearLayout(this).apply {
+        orientation = LinearLayout.VERTICAL
+        gravity = Gravity.CENTER_HORIZONTAL
+        setPadding(dp(2f), dp(6f), dp(2f), dp(8f))
+        isClickable = true
+        isFocusable = true
+        contentDescription = getString(R.string.widget_settings)
+        setOnClickListener { openSettings(this) }
+        addView(
+            ImageView(this@LauncherPopupActivity).apply {
+                setBackgroundResource(R.drawable.launcher_settings_background)
+                setImageResource(android.R.drawable.ic_menu_manage)
+                setColorFilter(0xE6FFFFFF.toInt())
+                scaleType = ImageView.ScaleType.CENTER_INSIDE
+                setPadding(iconPx / 5, iconPx / 5, iconPx / 5, iconPx / 5)
+            },
+            LinearLayout.LayoutParams(iconPx, iconPx),
+        )
+        addView(
+            TextView(this@LauncherPopupActivity).apply {
+                setText(R.string.launcher_settings)
+                textSize = 11f
+                setTextColor(0xB3FFFFFF.toInt())
+                gravity = Gravity.CENTER
+                maxLines = 1
+                ellipsize = TextUtils.TruncateAt.END
+            },
+            LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                .apply { topMargin = dp(4f) },
+        )
+    }
+
+    private fun openSettings(cell: View) {
+        if (closing) return
+        closing = true
+        cell.animate().cancel()
+        cell.animate().scaleX(0.88f).scaleY(0.88f).setStartDelay(0).setDuration(90)
+            .withEndAction {
+                startActivity(
+                    Intent(this, MainActivity::class.java)
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        .putExtra(MainActivity.EXTRA_OPEN_APP, HomeWidget.SETTINGS_TOKEN),
+                )
+                finishQuietly()
+            }
+            .start()
     }
 
     private fun cell(app: WidgetApp, iconPx: Int): View {

@@ -9,4 +9,5 @@
     <string name="launcher_widget_description">Un bouton discret : un appui déploie les applications Lielu.</string>
     <string name="launcher_widget_button">Afficher les applications Lielu</string>
     <string name="launcher_not_installed">%1$s (non installée)</string>
+    <string name="launcher_settings">Ordre des apps</string>
 </resources>

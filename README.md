@@ -10,7 +10,9 @@ releases GitHub publiques, sans compte ni connexion GitHub.
   L'ordre se règle à la main dans *Paramètres → Widget d'accueil* (glisser-déposer). Un appui ouvre l'app
   installée, l'app web dans le navigateur, ou la fiche du store si l'app n'est pas installée.
 - **Widget « Lanceur Lielu »** : un simple bouton discret (1×1). Un appui déploie, sans assombrir l'écran,
-  les icônes des apps Lielu depuis le bouton, les premières au plus près (pratique au pouce) ; un appui sur une icône l'ouvre, ailleurs referme le panneau.
+  les icônes des apps Lielu depuis le bouton, les premières au plus près (pratique au pouce). Un appui
+  sur une icône ouvre l'app, ailleurs referme le panneau. La dernière case « Ordre des apps » (ou
+  *Paramètres du widget* au long appui) ouvre le réglage de l'ordre, commun aux deux widgets.
 
 Application Flutter (Riverpod, Dio), avec une couche native Kotlin (`PackageManager` / `PackageInstaller`).
 Package Android : `eu.lielu.lieluapp`.
