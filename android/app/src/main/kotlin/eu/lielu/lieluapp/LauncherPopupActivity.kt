@@ -2,10 +2,8 @@ package eu.lielu.lieluapp
 
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
-import android.animation.ValueAnimator
 import android.app.Activity
 import android.content.Intent
-import android.graphics.Color
 import android.graphics.Rect
 import android.os.Bundle
 import android.text.TextUtils
@@ -27,7 +25,7 @@ import kotlin.math.max
 import kotlin.math.min
 
 /**
- * Lanceur déroulant du widget « Lanceur Lielu » : l'écran s'assombrit et les icônes
+ * Lanceur déroulant du widget « Lanceur Lielu » : sans assombrir l'écran, les icônes
  * des apps Lielu jaillissent du bouton pour se ranger dans un panneau. Un appui sur
  * une icône ouvre l'app (même logique que la grille du widget), un appui ailleurs
  * ou « retour » referme le panneau en ramenant les icônes vers le bouton.
@@ -40,6 +38,8 @@ class LauncherPopupActivity : Activity() {
     private val cells = ArrayList<View>()
     private var anchor: Rect? = null
     private var closing = false
+    private var fromRight = true
+    private var fromBottom = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,7 +51,6 @@ class LauncherPopupActivity : Activity() {
             finishQuietly()
             return
         }
-        drawEdgeToEdge()
         setContentView(buildViews(apps))
         root.viewTreeObserver.addOnPreDrawListener(object : ViewTreeObserver.OnPreDrawListener {
             override fun onPreDraw(): Boolean {
@@ -60,6 +59,8 @@ class LauncherPopupActivity : Activity() {
                 // liste défile (sinon le contenu masqué déborderait du panneau).
                 val grid = scroll.getChildAt(0)
                 scroll.clipChildren = grid.height > scroll.height
+                // Liste trop longue : on montre d'abord le côté du bouton (premières apps).
+                if (fromBottom && grid.height > scroll.height) scroll.scrollTo(0, grid.height)
                 placePanel()
                 animateOpen()
                 return true
@@ -86,27 +87,33 @@ class LauncherPopupActivity : Activity() {
 
     private fun dp(v: Float): Int = HomeWidget.dpToPx(this, v)
 
-    @Suppress("DEPRECATION")
-    private fun drawEdgeToEdge() {
-        // Le voile couvre aussi les barres système, comme un vrai dossier d'accueil.
-        window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
-            View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-        window.statusBarColor = Color.TRANSPARENT
-        window.navigationBarColor = Color.TRANSPARENT
-    }
-
     private fun buildViews(apps: List<WidgetApp>): View {
         val iconPx = dp(ICON_DP)
+        val metrics = resources.displayMetrics
+        fromRight = anchor?.let { it.centerX() > metrics.widthPixels / 2 } ?: true
+        fromBottom = anchor?.let { it.centerY() > metrics.heightPixels / 2 } ?: true
         // Colonnes : 4 au plus, moins si l'écran est étroit ou s'il y a peu d'apps.
         val fit = (resources.displayMetrics.widthPixels - 2 * dp(MARGIN_DP) - dp(24f)) / dp(CELL_DP)
         val columns = min(apps.size, fit.coerceIn(1, MAX_COLUMNS))
+        val rows = (apps.size + columns - 1) / columns
         val grid = GridLayout(this).apply {
             columnCount = columns
+            rowCount = rows
             useDefaultMargins = false
         }
-        apps.forEach { app ->
+        // Pratique au pouce : les premières apps sont au plus près du bouton, puis
+        // la grille s'en éloigne (rangées vers le haut si le bouton est en bas,
+        // colonnes vers la gauche s'il est à droite).
+        apps.forEachIndexed { i, app ->
             val cell = cell(app, iconPx)
-            grid.addView(cell, GridLayout.LayoutParams().apply { width = dp(CELL_DP) })
+            val r = i / columns
+            val c = i % columns
+            val row = if (fromBottom) rows - 1 - r else r
+            val col = if (fromRight) columns - 1 - c else c
+            grid.addView(
+                cell,
+                GridLayout.LayoutParams(GridLayout.spec(row), GridLayout.spec(col)).apply { width = dp(CELL_DP) },
+            )
             cells += cell
         }
         scroll = ScrollView(this).apply {
@@ -118,16 +125,15 @@ class LauncherPopupActivity : Activity() {
         }
         panel = FrameLayout(this).apply {
             setBackgroundResource(R.drawable.launcher_panel_background)
-            setPadding(dp(12f), dp(16f), dp(12f), dp(12f))
+            setPadding(dp(8f), dp(10f), dp(8f), dp(6f))
             elevation = dp(12f).toFloat()
             isClickable = true // un appui entre deux icônes ne ferme pas le panneau
             clipChildren = false
             alpha = 0f
             addView(scroll, FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT))
         }
+        // Pas de voile : l'écran d'accueil reste tel quel autour du panneau.
         root = FrameLayout(this).apply {
-            setBackgroundColor(Color.BLACK)
-            background?.alpha = 0
             clipChildren = false
             setOnClickListener { close() }
             addView(
@@ -148,7 +154,7 @@ class LauncherPopupActivity : Activity() {
         return LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER_HORIZONTAL
-            setPadding(dp(4f), dp(4f), dp(4f), dp(10f))
+            setPadding(dp(2f), dp(6f), dp(2f), dp(8f))
             isClickable = true
             isFocusable = true
             contentDescription = if (active) app.name else getString(R.string.launcher_not_installed, app.name)
@@ -171,7 +177,7 @@ class LauncherPopupActivity : Activity() {
                     ellipsize = TextUtils.TruncateAt.END
                 },
                 LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-                    .apply { topMargin = dp(6f) },
+                    .apply { topMargin = dp(4f) },
             )
         }
     }
@@ -185,20 +191,28 @@ class LauncherPopupActivity : Activity() {
         return (a.exactCenterX() - loc[0]) to (a.exactCenterY() - loc[1])
     }
 
-    /** Panneau collé au bouton : au-dessus s'il est en bas de l'écran, sinon en dessous. */
+    /**
+     * Panneau collé au bouton : au-dessus s'il est en bas de l'écran (sinon en dessous),
+     * aligné sur son bord droit s'il est à droite (sinon sur son bord gauche).
+     */
     private fun placePanel() {
         val (ax, ay) = anchorInRoot()
         val w = panel.width
         val h = panel.height
         val margin = dp(MARGIN_DP).toFloat()
         val top = dp(TOP_MARGIN_DP).toFloat()
-        val gap = dp(14f).toFloat()
-        val half = (anchor?.height() ?: 0) / 2f
-        val x = (ax - w / 2f).coerceIn(margin, max(margin, root.width - w - margin))
+        val gap = dp(8f).toFloat()
+        val half = (anchor?.width() ?: 0) / 2f
+        val halfH = (anchor?.height() ?: 0) / 2f
+        val x = when {
+            anchor == null -> (root.width - w) / 2f
+            fromRight -> ax + half - w
+            else -> ax - half
+        }.coerceIn(margin, max(margin, root.width - w - margin))
         val y = when {
             anchor == null -> (root.height - h) / 2f
-            ay > root.height / 2f -> ay - half - gap - h
-            else -> ay + half + gap
+            fromBottom -> ay - halfH - gap - h
+            else -> ay + halfH + gap
         }.coerceIn(top, max(top, root.height - h - top))
         // Les marges du FrameLayout ont déjà décalé le panneau : on les compense.
         panel.translationX = x - panel.left
@@ -241,14 +255,13 @@ class LauncherPopupActivity : Activity() {
                 .setInterpolator(OvershootInterpolator(1.2f))
                 .start()
         }
-        dim(to = DIM_ALPHA, duration = 260)
         panel.scaleX = 0.4f
         panel.scaleY = 0.4f
         panel.animate().alpha(1f).scaleX(1f).scaleY(1f)
             .setDuration(300).setInterpolator(DecelerateInterpolator(2f)).start()
     }
 
-    /** Referme : les icônes rentrent dans le bouton, le panneau se replie, le voile s'efface. */
+    /** Referme : les icônes rentrent dans le bouton et le panneau se replie. */
     private fun close() {
         if (closing) return
         closing = true
@@ -270,16 +283,6 @@ class LauncherPopupActivity : Activity() {
                 override fun onAnimationEnd(animation: Animator) = finishQuietly()
             })
             .start()
-        dim(to = 0, duration = 240)
-    }
-
-    private fun dim(to: Int, duration: Long) {
-        val bg = root.background ?: return
-        ValueAnimator.ofInt(bg.alpha, to).apply {
-            this.duration = duration
-            addUpdateListener { bg.alpha = it.animatedValue as Int }
-            start()
-        }
     }
 
     /** Petit enfoncement de l'icône, puis ouverture de l'app (via le relais du widget). */
@@ -309,11 +312,10 @@ class LauncherPopupActivity : Activity() {
     }
 
     private companion object {
-        const val ICON_DP = 52f
-        const val CELL_DP = 74f
+        const val ICON_DP = 48f
+        const val CELL_DP = 70f
         const val MAX_COLUMNS = 4
-        const val MARGIN_DP = 16f
-        const val TOP_MARGIN_DP = 40f
-        const val DIM_ALPHA = 140
+        const val MARGIN_DP = 8f
+        const val TOP_MARGIN_DP = 16f
     }
 }
