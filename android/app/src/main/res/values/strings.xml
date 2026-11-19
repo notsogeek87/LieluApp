@@ -5,4 +5,8 @@
     <string name="widget_description">Toutes les applications Lielu, dans l\'ordre que vous choisissez dans le store.</string>
     <string name="widget_empty">Ouvrez Lielu Store pour afficher vos applications.</string>
     <string name="widget_settings">Régler le widget (ordre et taille des icônes)</string>
+    <string name="launcher_widget_label">Lanceur Lielu</string>
+    <string name="launcher_widget_description">Un bouton discret : un appui déploie les applications Lielu.</string>
+    <string name="launcher_widget_button">Afficher les applications Lielu</string>
+    <string name="launcher_not_installed">%1$s (non installée)</string>
 </resources>

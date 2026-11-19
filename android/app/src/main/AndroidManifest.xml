@@ -44,6 +44,27 @@
                 android:resource="@xml/apps_widget_info"/>
         </receiver>
 
+        <!-- Widget « Lanceur Lielu » : bouton discret qui déploie les apps -->
+        <receiver
+            android:name=".LauncherWidgetProvider"
+            android:exported="false"
+            android:label="@string/launcher_widget_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/launcher_widget_info"/>
+        </receiver>
+
+        <activity
+            android:name=".LauncherPopupActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:launchMode="singleTask"
+            android:taskAffinity="eu.lielu.lieluapp.launcher"
+            android:theme="@style/LauncherPopupTheme"/>
+
         <service
             android:name=".AppsWidgetService"
             android:exported="false"
