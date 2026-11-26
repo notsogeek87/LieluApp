@@ -5,6 +5,7 @@ import android.animation.AnimatorListenerAdapter
 import android.app.Activity
 import android.content.Intent
 import android.graphics.Rect
+import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.text.TextUtils
 import android.view.Gravity
@@ -40,6 +41,8 @@ class LauncherPopupActivity : Activity() {
     private var closing = false
     private var fromRight = true
     private var fromBottom = true
+    private var cellDp = MIN_CELL_DP
+    private var shadowedLabels = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -86,14 +89,21 @@ class LauncherPopupActivity : Activity() {
     // ------------------------------------------------------------- vues
 
     private fun dp(v: Float): Int = HomeWidget.dpToPx(this, v)
+    private fun dp(v: Int): Int = dp(v.toFloat())
 
     private fun buildViews(apps: List<WidgetApp>): View {
-        val iconPx = dp(ICON_DP)
+        // Mêmes réglages que la grille du widget : taille des icônes et transparence du fond.
+        val iconDp = HomeWidget.iconDp(this)
+        val iconPx = dp(iconDp.toFloat())
+        cellDp = max(MIN_CELL_DP, iconDp + CELL_EXTRA_DP)
+        val bgAlpha = HomeWidget.backgroundAlpha(this)
+        // Fond très transparent : on garde les libellés lisibles sur le fond d'écran.
+        shadowedLabels = bgAlpha < 160
         val metrics = resources.displayMetrics
         fromRight = anchor?.let { it.centerX() > metrics.widthPixels / 2 } ?: true
         fromBottom = anchor?.let { it.centerY() > metrics.heightPixels / 2 } ?: true
         // Colonnes : 4 au plus, moins si l'écran est étroit ou s'il y a peu d'apps.
-        val fit = (resources.displayMetrics.widthPixels - 2 * dp(MARGIN_DP) - dp(24f)) / dp(CELL_DP)
+        val fit = (resources.displayMetrics.widthPixels - 2 * dp(MARGIN_DP) - dp(24f)) / dp(cellDp)
         // Une case de plus, la dernière (la plus loin du bouton) : réglage de l'ordre.
         val count = apps.size + 1
         val columns = min(count, fit.coerceIn(1, MAX_COLUMNS))
@@ -114,7 +124,7 @@ class LauncherPopupActivity : Activity() {
             val col = if (fromRight) columns - 1 - c else c
             grid.addView(
                 cell,
-                GridLayout.LayoutParams(GridLayout.spec(row), GridLayout.spec(col)).apply { width = dp(CELL_DP) },
+                GridLayout.LayoutParams(GridLayout.spec(row), GridLayout.spec(col)).apply { width = dp(cellDp) },
             )
             cells += cell
         }
@@ -126,9 +136,14 @@ class LauncherPopupActivity : Activity() {
             addView(grid)
         }
         panel = FrameLayout(this).apply {
-            setBackgroundResource(R.drawable.launcher_panel_background)
+            background = GradientDrawable().apply {
+                cornerRadius = dp(28f).toFloat()
+                setColor((bgAlpha shl 24) or PANEL_RGB)
+                setStroke(dp(1f), (bgAlpha * 0x1F / 255 shl 24) or 0xFFFFFF)
+            }
             setPadding(dp(8f), dp(10f), dp(8f), dp(6f))
-            elevation = dp(12f).toFloat()
+            // Pas d'ombre portée sous un fond presque invisible (elle dessinerait un halo).
+            elevation = if (bgAlpha >= 160) dp(12f).toFloat() else 0f
             isClickable = true // un appui entre deux icônes ne ferme pas le panneau
             clipChildren = false
             alpha = 0f
@@ -176,6 +191,7 @@ class LauncherPopupActivity : Activity() {
                 gravity = Gravity.CENTER
                 maxLines = 1
                 ellipsize = TextUtils.TruncateAt.END
+                if (shadowedLabels) setShadowLayer(dp(3f).toFloat(), 0f, dp(1f).toFloat(), 0xCC000000.toInt())
             },
             LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
                 .apply { topMargin = dp(4f) },
@@ -226,6 +242,7 @@ class LauncherPopupActivity : Activity() {
                     gravity = Gravity.CENTER
                     maxLines = 1
                     ellipsize = TextUtils.TruncateAt.END
+                    if (shadowedLabels) setShadowLayer(dp(3f).toFloat(), 0f, dp(1f).toFloat(), 0xCC000000.toInt())
                 },
                 LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
                     .apply { topMargin = dp(4f) },
@@ -363,8 +380,10 @@ class LauncherPopupActivity : Activity() {
     }
 
     private companion object {
-        const val ICON_DP = 48f
-        const val CELL_DP = 70f
+        /** Largeur d'une case : l'icône plus de l'air, au moins de quoi lire un libellé court. */
+        const val MIN_CELL_DP = 64
+        const val CELL_EXTRA_DP = 22
+        const val PANEL_RGB = 0x141826
         const val MAX_COLUMNS = 4
         const val MARGIN_DP = 8f
         const val TOP_MARGIN_DP = 16f
